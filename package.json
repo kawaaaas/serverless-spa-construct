@@ -1,8 +1,9 @@
 {
   "name": "serverless-spa-construct",
+  "description": "A high-level AWS CDK construct for building serverless SPAs with DynamoDB, Cognito, API Gateway, S3, CloudFront, WAF, and more.",
   "repository": {
     "type": "git",
-    "url": "https://github.com/sho1314_2423/serverless-spa-construct.git"
+    "url": "https://github.com/kawaaas/serverless-spa-construct.git"
   },
   "scripts": {
     "build": "npx projen build",
@@ -30,11 +31,13 @@
   },
   "author": {
     "name": "kawaaaas",
-    "email": "sho1314_2423@yahoo.co.jp",
+    "email": "dev.kawaaaas@gmail.com",
     "organization": false
   },
   "devDependencies": {
+    "@aws-sdk/client-ssm": "^3.996.0",
     "@stylistic/eslint-plugin": "^2",
+    "@types/aws-lambda": "^8.10.160",
     "@types/jest": "^30.0.0",
     "@types/node": "^25.3.0",
     "@typescript-eslint/eslint-plugin": "^8",
@@ -42,9 +45,11 @@
     "aws-cdk-lib": "2.189.1",
     "commit-and-tag-version": "^12",
     "constructs": "10.5.1",
+    "esbuild": "^0.27.3",
     "eslint": "^9",
     "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-import": "^2.32.0",
+    "fast-check": "^4.5.3",
     "jest": "^30.2.0",
     "jest-junit": "^16",
     "jsii": "~5.9.0",
@@ -61,8 +66,24 @@
     "aws-cdk-lib": "^2.189.1",
     "constructs": "^10.5.1"
   },
+  "dependencies": {
+    "@aws-sdk/client-secrets-manager": "^3.996.0",
+    "aws-jwt-verify": "^5.1.1"
+  },
+  "bundledDependencies": [
+    "@aws-sdk/client-secrets-manager",
+    "aws-jwt-verify"
+  ],
   "keywords": [
-    "cdk"
+    "apigateway",
+    "aws",
+    "cdk",
+    "cloudfront",
+    "cognito",
+    "dynamodb",
+    "serverless",
+    "spa",
+    "waf"
   ],
   "main": "lib/index.js",
   "license": "Apache-2.0",
@@ -116,7 +137,7 @@
     }
   },
   "types": "lib/index.d.ts",
-  "stability": "stable",
+  "stability": "experimental",
   "jsii": {
     "outdir": "dist",
     "targets": {},

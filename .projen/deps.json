@@ -1,8 +1,16 @@
 {
   "dependencies": [
     {
+      "name": "@aws-sdk/client-ssm",
+      "type": "build"
+    },
+    {
       "name": "@stylistic/eslint-plugin",
       "version": "^2",
+      "type": "build"
+    },
+    {
+      "name": "@types/aws-lambda",
       "type": "build"
     },
     {
@@ -29,6 +37,10 @@
       "type": "build"
     },
     {
+      "name": "esbuild",
+      "type": "build"
+    },
+    {
       "name": "eslint-import-resolver-typescript",
       "type": "build"
     },
@@ -39,6 +51,10 @@
     {
       "name": "eslint",
       "version": "^9",
+      "type": "build"
+    },
+    {
+      "name": "fast-check",
       "type": "build"
     },
     {
@@ -88,6 +104,14 @@
     {
       "name": "typescript",
       "type": "build"
+    },
+    {
+      "name": "@aws-sdk/client-secrets-manager",
+      "type": "bundled"
+    },
+    {
+      "name": "aws-jwt-verify",
+      "type": "bundled"
     },
     {
       "name": "aws-cdk-lib",
