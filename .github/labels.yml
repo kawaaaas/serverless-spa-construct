@@ -32,5 +32,5 @@
   color: 7057ff
   description: Good for newcomers
 - name: help wanted
-  color: 008672
+  color: '008672'
   description: Extra attention is needed
