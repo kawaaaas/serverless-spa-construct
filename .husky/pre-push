@@ -1,1 +1,2 @@
 npx projen build
+git diff --exit-code || (echo "\nBuild generated uncommitted changes (e.g. API.md). Please commit them and push again." && exit 1)

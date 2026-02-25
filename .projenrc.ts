@@ -113,9 +113,12 @@ new TextFile(project, '.husky/pre-commit', {
 });
 
 // Husky: pre-push hook
-// Run full build (compile + docgen + test) to ensure API.md is up to date before pushing
+// Run full build (compile + docgen + test) then abort push if uncommitted changes exist (e.g. stale API.md)
 new TextFile(project, '.husky/pre-push', {
-  lines: ['npx projen build'],
+  lines: [
+    'npx projen build',
+    'git diff --exit-code || (echo "\\nBuild generated uncommitted changes (e.g. API.md). Please commit them and push again." && exit 1)',
+  ],
   marker: false,
 });
 
