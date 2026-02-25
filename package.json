@@ -36,7 +36,7 @@
     "organization": false
   },
   "devDependencies": {
-    "@aws-sdk/client-ssm": "^3.996.0",
+    "@aws-sdk/client-ssm": "^3.997.0",
     "@types/aws-lambda": "^8.10.160",
     "@types/jest": "^30.0.0",
     "@types/node": "^25.3.0",
@@ -73,7 +73,7 @@
     "constructs": "^10.5.1"
   },
   "dependencies": {
-    "@aws-sdk/client-secrets-manager": "^3.996.0",
+    "@aws-sdk/client-secrets-manager": "^3.997.0",
     "aws-jwt-verify": "^5.1.1"
   },
   "bundledDependencies": [
