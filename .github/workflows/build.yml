@@ -20,7 +20,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.ref }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
       - name: Setup Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version: lts/*
       - name: Install dependencies
@@ -94,7 +94,7 @@ jobs:
       contents: read
     if: ${{ !needs.build.outputs.self_mutation_happened }}
     steps:
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
           node-version: lts/*
       - name: Download build artifacts
