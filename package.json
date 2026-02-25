@@ -3,7 +3,7 @@
   "description": "A high-level AWS CDK construct for building serverless SPAs with DynamoDB, Cognito, API Gateway, S3, CloudFront, WAF, and more.",
   "repository": {
     "type": "git",
-    "url": "https://github.com/kawaaas/serverless-spa-construct.git"
+    "url": "https://github.com/kawaaaas/serverless-spa-construct.git"
   },
   "scripts": {
     "build": "npx projen build",

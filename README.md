@@ -101,23 +101,27 @@ Peer dependencies (must be installed separately):
 npm install aws-cdk-lib constructs
 ```
 
+## Usage Examples
+
+For a complete working example implementation, see the [serverless-spa-construct-test](https://github.com/kawaaaas/serverless-spa-construct-test) repository.
+
 ## Quick Start
 
 The simplest setup uses `ServerlessSpaConstruct.minimal()` with a CloudFront default domain:
 
 ```ts
-import { Stack, StackProps } from "aws-cdk-lib";
-import { AttributeType } from "aws-cdk-lib/aws-dynamodb";
-import { Construct } from "constructs";
-import { ServerlessSpaConstruct } from "serverless-spa-construct";
+import { Stack, StackProps } from 'aws-cdk-lib';
+import { AttributeType } from 'aws-cdk-lib/aws-dynamodb';
+import { Construct } from 'constructs';
+import { ServerlessSpaConstruct } from 'serverless-spa-construct';
 
 export class MyAppStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
-    const app = ServerlessSpaConstruct.minimal(this, "App", {
-      lambdaEntry: "./lambda/handler.ts",
-      partitionKey: { name: "PK", type: AttributeType.STRING },
+    const app = ServerlessSpaConstruct.minimal(this, 'App', {
+      lambdaEntry: './lambda/handler.ts',
+      partitionKey: { name: 'PK', type: AttributeType.STRING },
     });
 
     // Access outputs
@@ -137,10 +141,10 @@ export class MyAppStack extends Stack {
 No custom domain, no WAF. Uses CloudFront default domain.
 
 ```ts
-ServerlessSpaConstruct.minimal(this, "App", {
-  lambdaEntry: "./lambda/handler.ts",
-  partitionKey: { name: "PK", type: AttributeType.STRING },
-  sortKey: { name: "SK", type: AttributeType.STRING },
+ServerlessSpaConstruct.minimal(this, 'App', {
+  lambdaEntry: './lambda/handler.ts',
+  partitionKey: { name: 'PK', type: AttributeType.STRING },
+  sortKey: { name: 'SK', type: AttributeType.STRING },
 });
 ```
 
@@ -149,14 +153,14 @@ ServerlessSpaConstruct.minimal(this, "App", {
 Requires a `ServerlessSpaSecurityConstruct` with certificate deployed in us-east-1 first.
 
 ```ts
-ServerlessSpaConstruct.withCustomDomain(this, "App", {
-  lambdaEntry: "./lambda/handler.ts",
-  partitionKey: { name: "PK", type: AttributeType.STRING },
-  domainName: "www.example.com",
-  hostedZoneId: "Z1234567890ABC",
-  zoneName: "example.com",
-  ssmPrefix: "/myapp/security/",
-  alternativeDomainNames: ["example.com"],
+ServerlessSpaConstruct.withCustomDomain(this, 'App', {
+  lambdaEntry: './lambda/handler.ts',
+  partitionKey: { name: 'PK', type: AttributeType.STRING },
+  domainName: 'www.example.com',
+  hostedZoneId: 'Z1234567890ABC',
+  zoneName: 'example.com',
+  ssmPrefix: '/myapp/security/',
+  alternativeDomainNames: ['example.com'],
 });
 ```
 
@@ -165,10 +169,10 @@ ServerlessSpaConstruct.withCustomDomain(this, "App", {
 Requires a `ServerlessSpaSecurityConstruct` with WAF deployed in us-east-1 first.
 
 ```ts
-ServerlessSpaConstruct.withWaf(this, "App", {
-  lambdaEntry: "./lambda/handler.ts",
-  partitionKey: { name: "PK", type: AttributeType.STRING },
-  ssmPrefix: "/myapp/security/",
+ServerlessSpaConstruct.withWaf(this, 'App', {
+  lambdaEntry: './lambda/handler.ts',
+  partitionKey: { name: 'PK', type: AttributeType.STRING },
+  ssmPrefix: '/myapp/security/',
 });
 ```
 
@@ -177,16 +181,16 @@ ServerlessSpaConstruct.withWaf(this, "App", {
 Requires a `ServerlessSpaSecurityConstruct` with WAF and certificate deployed in us-east-1 first.
 
 ```ts
-ServerlessSpaConstruct.withCustomDomainAndWaf(this, "App", {
-  lambdaEntry: "./lambda/handler.ts",
-  partitionKey: { name: "PK", type: AttributeType.STRING },
-  sortKey: { name: "SK", type: AttributeType.STRING },
-  domainName: "www.example.com",
-  hostedZoneId: "Z1234567890ABC",
-  zoneName: "example.com",
-  ssmPrefix: "/myapp/security/",
-  alternativeDomainNames: ["example.com"],
-  securityRegion: "us-east-1",
+ServerlessSpaConstruct.withCustomDomainAndWaf(this, 'App', {
+  lambdaEntry: './lambda/handler.ts',
+  partitionKey: { name: 'PK', type: AttributeType.STRING },
+  sortKey: { name: 'SK', type: AttributeType.STRING },
+  domainName: 'www.example.com',
+  hostedZoneId: 'Z1234567890ABC',
+  zoneName: 'example.com',
+  ssmPrefix: '/myapp/security/',
+  alternativeDomainNames: ['example.com'],
+  securityRegion: 'us-east-1',
 });
 ```
 
@@ -198,22 +202,22 @@ This example shows a complete production setup with a security stack in us-east-
 
 ```ts
 // bin/app.ts
-import * as cdk from "aws-cdk-lib/core";
-import { SecurityStack } from "../lib/security-stack";
-import { MainStack } from "../lib/main-stack";
+import * as cdk from 'aws-cdk-lib/core';
+import { SecurityStack } from '../lib/security-stack';
+import { MainStack } from '../lib/main-stack';
 
 const app = new cdk.App();
 
 // Security stack must be deployed in us-east-1
 // (CloudFront requires WAF WebACLs and ACM certificates in this region)
-const securityStack = new SecurityStack(app, "SecurityStack", {
-  env: { region: "us-east-1" },
+const securityStack = new SecurityStack(app, 'SecurityStack', {
+  env: { region: 'us-east-1' },
   crossRegionReferences: true,
 });
 
 // Main stack can be deployed in any region
-const mainStack = new MainStack(app, "MainStack", {
-  env: { region: "ap-northeast-1" },
+const mainStack = new MainStack(app, 'MainStack', {
+  env: { region: 'ap-northeast-1' },
   crossRegionReferences: true,
 });
 
@@ -225,21 +229,21 @@ mainStack.addDependency(securityStack);
 
 ```ts
 // lib/security-stack.ts
-import * as cdk from "aws-cdk-lib/core";
-import { Construct } from "constructs";
-import { ServerlessSpaSecurityConstruct } from "serverless-spa-construct";
+import * as cdk from 'aws-cdk-lib/core';
+import { Construct } from 'constructs';
+import { ServerlessSpaSecurityConstruct } from 'serverless-spa-construct';
 
 export class SecurityStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    ServerlessSpaSecurityConstruct.withWafAndCertificate(this, "Security", {
-      ssmPrefix: "/myapp/security/",
+    ServerlessSpaSecurityConstruct.withWafAndCertificate(this, 'Security', {
+      ssmPrefix: '/myapp/security/',
       rateLimit: 2000,
-      domainName: "www.example.com",
-      hostedZoneId: "Z1234567890ABC",
-      zoneName: "example.com",
-      alternativeDomainNames: ["example.com"],
+      domainName: 'www.example.com',
+      hostedZoneId: 'Z1234567890ABC',
+      zoneName: 'example.com',
+      alternativeDomainNames: ['example.com'],
     });
   }
 }
@@ -249,30 +253,30 @@ export class SecurityStack extends cdk.Stack {
 
 ```ts
 // lib/main-stack.ts
-import { AttributeType } from "aws-cdk-lib/aws-dynamodb";
-import * as cdk from "aws-cdk-lib/core";
-import { Construct } from "constructs";
-import * as path from "path";
-import { ServerlessSpaConstruct } from "serverless-spa-construct";
+import { AttributeType } from 'aws-cdk-lib/aws-dynamodb';
+import * as cdk from 'aws-cdk-lib/core';
+import { Construct } from 'constructs';
+import * as path from 'path';
+import { ServerlessSpaConstruct } from 'serverless-spa-construct';
 
 export class MainStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    ServerlessSpaConstruct.withCustomDomainAndWaf(this, "App", {
-      lambdaEntry: path.join(__dirname, "../lambda/handler.ts"),
-      partitionKey: { name: "PK", type: AttributeType.STRING },
-      sortKey: { name: "SK", type: AttributeType.STRING },
-      domainName: "www.example.com",
-      hostedZoneId: "Z1234567890ABC",
-      zoneName: "example.com",
-      ssmPrefix: "/myapp/security/",
-      alternativeDomainNames: ["example.com"],
-      securityRegion: "us-east-1",
+    ServerlessSpaConstruct.withCustomDomainAndWaf(this, 'App', {
+      lambdaEntry: path.join(__dirname, '../lambda/handler.ts'),
+      partitionKey: { name: 'PK', type: AttributeType.STRING },
+      sortKey: { name: 'SK', type: AttributeType.STRING },
+      domainName: 'www.example.com',
+      hostedZoneId: 'Z1234567890ABC',
+      zoneName: 'example.com',
+      ssmPrefix: '/myapp/security/',
+      alternativeDomainNames: ['example.com'],
+      securityRegion: 'us-east-1',
       advanced: {
         tags: {
-          Project: "MyApp",
-          Environment: "Production",
+          Project: 'MyApp',
+          Environment: 'Production',
         },
       },
     });
@@ -304,32 +308,32 @@ npx cdk deploy MainStack
 
 ```ts
 // Minimal: custom header only
-ServerlessSpaSecurityConstruct.minimal(this, "Security", {
-  ssmPrefix: "/myapp/security/",
+ServerlessSpaSecurityConstruct.minimal(this, 'Security', {
+  ssmPrefix: '/myapp/security/',
 });
 
 // WAF protection
-ServerlessSpaSecurityConstruct.withWaf(this, "Security", {
-  ssmPrefix: "/myapp/security/",
+ServerlessSpaSecurityConstruct.withWaf(this, 'Security', {
+  ssmPrefix: '/myapp/security/',
   rateLimit: 3000,
 });
 
 // Certificate only
-ServerlessSpaSecurityConstruct.withCertificate(this, "Security", {
-  ssmPrefix: "/myapp/security/",
-  domainName: "www.example.com",
-  hostedZoneId: "Z1234567890ABC",
-  zoneName: "example.com",
+ServerlessSpaSecurityConstruct.withCertificate(this, 'Security', {
+  ssmPrefix: '/myapp/security/',
+  domainName: 'www.example.com',
+  hostedZoneId: 'Z1234567890ABC',
+  zoneName: 'example.com',
 });
 
 // Full security suite
-ServerlessSpaSecurityConstruct.withWafAndCertificate(this, "Security", {
-  ssmPrefix: "/myapp/security/",
+ServerlessSpaSecurityConstruct.withWafAndCertificate(this, 'Security', {
+  ssmPrefix: '/myapp/security/',
   rateLimit: 2000,
-  domainName: "www.example.com",
-  hostedZoneId: "Z1234567890ABC",
-  zoneName: "example.com",
-  alternativeDomainNames: ["example.com"],
+  domainName: 'www.example.com',
+  hostedZoneId: 'Z1234567890ABC',
+  zoneName: 'example.com',
+  alternativeDomainNames: ['example.com'],
 });
 ```
 
@@ -340,23 +344,23 @@ Both high-level constructs accept an `advanced` option for fine-grained control 
 ### ServerlessSpaConstruct
 
 ```ts
-ServerlessSpaConstruct.minimal(this, "App", {
-  lambdaEntry: "./lambda/handler.ts",
-  partitionKey: { name: "PK", type: AttributeType.STRING },
+ServerlessSpaConstruct.minimal(this, 'App', {
+  lambdaEntry: './lambda/handler.ts',
+  partitionKey: { name: 'PK', type: AttributeType.STRING },
   advanced: {
     database: {
       billingMode: BillingMode.PAY_PER_REQUEST,
       pointInTimeRecoveryEnabled: true,
       globalSecondaryIndexes: [
         {
-          indexName: "GSI1",
-          partitionKey: { name: "GSI1PK", type: AttributeType.STRING },
-          sortKey: { name: "GSI1SK", type: AttributeType.STRING },
+          indexName: 'GSI1',
+          partitionKey: { name: 'GSI1PK', type: AttributeType.STRING },
+          sortKey: { name: 'GSI1SK', type: AttributeType.STRING },
         },
       ],
     },
     api: {
-      customHeaderName: "x-custom-verify",
+      customHeaderName: 'x-custom-verify',
       authorizerCacheTtlSeconds: 600,
     },
     frontend: {
@@ -364,7 +368,7 @@ ServerlessSpaConstruct.minimal(this, "App", {
     },
     removalPolicy: RemovalPolicy.RETAIN,
     tags: {
-      Team: "Backend",
+      Team: 'Backend',
     },
   },
 });
@@ -373,8 +377,8 @@ ServerlessSpaConstruct.minimal(this, "App", {
 ### ServerlessSpaSecurityConstruct
 
 ```ts
-ServerlessSpaSecurityConstruct.withWaf(this, "Security", {
-  ssmPrefix: "/myapp/security/",
+ServerlessSpaSecurityConstruct.withWaf(this, 'Security', {
+  ssmPrefix: '/myapp/security/',
   rateLimit: 5000,
   advanced: {
     waf: {
@@ -382,14 +386,14 @@ ServerlessSpaSecurityConstruct.withWaf(this, "Security", {
       enableSqliRuleSet: true,
       customRules: [
         {
-          name: "BlockBadBots",
+          name: 'BlockBadBots',
           priority: 10,
           statement: {
             byteMatchStatement: {
-              searchString: "BadBot",
-              fieldToMatch: { singleHeader: { name: "user-agent" } },
-              textTransformations: [{ priority: 0, type: "LOWERCASE" }],
-              positionalConstraint: "CONTAINS",
+              searchString: 'BadBot',
+              fieldToMatch: { singleHeader: { name: 'user-agent' } },
+              textTransformations: [{ priority: 0, type: 'LOWERCASE' }],
+              positionalConstraint: 'CONTAINS',
             },
           },
           action: { block: {} },
@@ -397,10 +401,10 @@ ServerlessSpaSecurityConstruct.withWaf(this, "Security", {
       ],
     },
     secret: {
-      customHeaderName: "x-custom-verify",
+      customHeaderName: 'x-custom-verify',
       rotationDays: 14,
     },
-    replicaRegions: ["ap-northeast-1", "eu-west-1"],
+    replicaRegions: ['ap-northeast-1', 'eu-west-1'],
     edgeCacheTtlSeconds: 600,
     removalPolicy: RemovalPolicy.DESTROY,
   },
@@ -426,26 +430,21 @@ For cases where the high-level constructs do not fit your needs, you can use the
 Example using low-level constructs:
 
 ```ts
-import {
-  DatabaseConstruct,
-  AuthConstruct,
-  ApiConstruct,
-  FrontendConstruct,
-} from "serverless-spa-construct";
+import { DatabaseConstruct, AuthConstruct, ApiConstruct, FrontendConstruct } from 'serverless-spa-construct';
 
-const database = new DatabaseConstruct(this, "Database", {
-  partitionKey: { name: "PK", type: AttributeType.STRING },
+const database = new DatabaseConstruct(this, 'Database', {
+  partitionKey: { name: 'PK', type: AttributeType.STRING },
 });
 
-const auth = new AuthConstruct(this, "Auth");
+const auth = new AuthConstruct(this, 'Auth');
 
-const api = new ApiConstruct(this, "Api", {
-  entry: "./lambda/handler.ts",
+const api = new ApiConstruct(this, 'Api', {
+  entry: './lambda/handler.ts',
   table: database.table,
   userPool: auth.userPool,
 });
 
-const frontend = new FrontendConstruct(this, "Frontend", {
+const frontend = new FrontendConstruct(this, 'Frontend', {
   api: api.api,
   customHeaderName: api.customHeaderName,
 });
