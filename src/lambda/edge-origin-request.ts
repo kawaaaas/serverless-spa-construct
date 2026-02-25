@@ -1,9 +1,5 @@
 import { GetSecretValueCommand, SecretsManagerClient } from '@aws-sdk/client-secrets-manager';
-import {
-  CloudFrontRequestEvent,
-  CloudFrontRequestHandler,
-  CloudFrontRequestResult,
-} from 'aws-lambda';
+import { CloudFrontRequestEvent, CloudFrontRequestHandler, CloudFrontRequestResult } from 'aws-lambda';
 
 /**
  * Secret cache structure for storing secret values with TTL.
@@ -104,11 +100,7 @@ export function isCacheValid(cache: SecretCache | null, currentTime: number): bo
 /**
  * Creates a new cache entry with the given value and TTL.
  */
-export function createCacheEntry(
-  value: string,
-  ttlSeconds: number,
-  currentTime: number,
-): SecretCache {
+export function createCacheEntry(value: string, ttlSeconds: number, currentTime: number): SecretCache {
   return {
     value,
     expiresAt: currentTime + ttlSeconds * 1000,
@@ -210,9 +202,7 @@ export function addCustomHeader(
  * The custom header is used by API Gateway's Lambda Authorizer
  * to verify that requests come through CloudFront.
  */
-export const handler: CloudFrontRequestHandler = async (
-  event: CloudFrontRequestEvent,
-): Promise<CloudFrontRequestResult> => {
+export const handler: CloudFrontRequestHandler = async (event: CloudFrontRequestEvent): Promise<CloudFrontRequestResult> => {
   const request = event.Records[0].cf.request;
   const customHeaderName = getCustomHeaderName();
 

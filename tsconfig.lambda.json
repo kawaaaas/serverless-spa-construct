@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "outDir": "lambda",
+    "rootDir": "src/lambda",
+    "target": "es2020",
+    "module": "commonjs",
+    "lib": ["es2020"],
+    "strict": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "declaration": false,
+    "inlineSourceMap": true,
+    "esModuleInterop": true
+  },
+  "include": ["src/lambda/**/*.ts"],
+  "exclude": ["node_modules"]
+}

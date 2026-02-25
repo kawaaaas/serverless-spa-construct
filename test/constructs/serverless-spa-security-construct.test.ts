@@ -318,9 +318,7 @@ describe('ServerlessSpaSecurityConstruct', () => {
         const security = ServerlessSpaSecurityConstruct.minimal(stack, 'Security', {
           ssmPrefix: '/myapp/security/',
         });
-        expect(security.edgeFunctionVersionArn).toBe(
-          security.lambdaEdge!.functionVersion.functionArn,
-        );
+        expect(security.edgeFunctionVersionArn).toBe(security.lambdaEdge!.functionVersion.functionArn);
       } catch (e) {
         if (e instanceof Error && e.message.includes('bundle')) {
           return;
@@ -360,11 +358,7 @@ describe('ServerlessSpaSecurityConstruct', () => {
         env: { region: 'us-east-1' },
       });
       try {
-        const security = ServerlessSpaSecurityConstruct.withCertificate(
-          stack,
-          'Security',
-          certProps,
-        );
+        const security = ServerlessSpaSecurityConstruct.withCertificate(stack, 'Security', certProps);
         expect(security.certificateConstruct).toBeDefined();
         expect(security.certificateArn).toBeDefined();
       } catch (e) {
@@ -406,11 +400,7 @@ describe('ServerlessSpaSecurityConstruct', () => {
         env: { region: 'us-east-1' },
       });
       try {
-        const security = ServerlessSpaSecurityConstruct.withCertificate(
-          stack,
-          'Security',
-          certProps,
-        );
+        const security = ServerlessSpaSecurityConstruct.withCertificate(stack, 'Security', certProps);
         expect(security.waf).toBeUndefined();
         expect(security.webAclArn).toBeUndefined();
       } catch (e) {
@@ -426,11 +416,7 @@ describe('ServerlessSpaSecurityConstruct', () => {
         env: { region: 'us-east-1' },
       });
       try {
-        const security = ServerlessSpaSecurityConstruct.withCertificate(
-          stack,
-          'Security',
-          certProps,
-        );
+        const security = ServerlessSpaSecurityConstruct.withCertificate(stack, 'Security', certProps);
         expect(security.secret).toBeDefined();
         expect(security.lambdaEdge).toBeDefined();
       } catch (e) {
@@ -456,11 +442,7 @@ describe('ServerlessSpaSecurityConstruct', () => {
         env: { region: 'us-east-1' },
       });
       try {
-        const security = ServerlessSpaSecurityConstruct.withWafAndCertificate(
-          stack,
-          'Security',
-          wafCertProps,
-        );
+        const security = ServerlessSpaSecurityConstruct.withWafAndCertificate(stack, 'Security', wafCertProps);
         const template = Template.fromStack(stack);
 
         // WAF is created
@@ -495,11 +477,7 @@ describe('ServerlessSpaSecurityConstruct', () => {
         env: { region: 'us-east-1' },
       });
       try {
-        const security = ServerlessSpaSecurityConstruct.withWafAndCertificate(
-          stack,
-          'Security',
-          wafCertProps,
-        );
+        const security = ServerlessSpaSecurityConstruct.withWafAndCertificate(stack, 'Security', wafCertProps);
         expect(security.waf).toBeDefined();
         expect(security.secret).toBeDefined();
         expect(security.lambdaEdge).toBeDefined();

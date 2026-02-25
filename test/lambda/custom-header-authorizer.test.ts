@@ -13,13 +13,10 @@ import {
  * Header names should be alphanumeric with hyphens, starting with x-.
  */
 const headerNameArb: fc.Arbitrary<string> = fc
-  .array(
-    fc.constantFrom(...'abcdefghijklmnopqrstuvwxyz0123456789-'.split('')),
-    {
-      minLength: 1,
-      maxLength: 20,
-    },
-  )
+  .array(fc.constantFrom(...'abcdefghijklmnopqrstuvwxyz0123456789-'.split('')), {
+    minLength: 1,
+    maxLength: 20,
+  })
   .map((chars: string[]) => `x-${chars.join('')}`);
 
 /**
@@ -27,13 +24,10 @@ const headerNameArb: fc.Arbitrary<string> = fc
  * Header values should be non-empty strings without control characters.
  */
 const headerValueArb: fc.Arbitrary<string> = fc
-  .array(
-    fc.constantFrom(...'abcdefghijklmnopqrstuvwxyz0123456789-_'.split('')),
-    {
-      minLength: 1,
-      maxLength: 64,
-    },
-  )
+  .array(fc.constantFrom(...'abcdefghijklmnopqrstuvwxyz0123456789-_'.split('')), {
+    minLength: 1,
+    maxLength: 64,
+  })
   .map((chars: string[]) => chars.join(''));
 
 /**
@@ -48,10 +42,7 @@ const methodArnArb: fc.Arbitrary<string> = fc
     fc.constantFrom('GET', 'POST', 'PUT', 'DELETE'),
     fc.stringMatching(/^\/[a-z]+$/),
   )
-  .map(
-    ([region, accountId, apiId, stage, method, path]) =>
-      `arn:aws:execute-api:${region}:${accountId}:${apiId}/${stage}/${method}${path}`,
-  );
+  .map(([region, accountId, apiId, stage, method, path]) => `arn:aws:execute-api:${region}:${accountId}:${apiId}/${stage}/${method}${path}`);
 
 describe('Lambda Authorizer Handler', () => {
   beforeEach(() => {
@@ -130,20 +121,16 @@ describe('Lambda Authorizer Handler', () => {
      */
     test('extractHeaderValue returns value when header exists (case-insensitive)', () => {
       fc.assert(
-        fc.property(
-          headerNameArb,
-          headerValueArb,
-          (headerName: string, headerValue: string) => {
-            // Arrange - test with various casings
-            const headers = { [headerName]: headerValue };
+        fc.property(headerNameArb, headerValueArb, (headerName: string, headerValue: string) => {
+          // Arrange - test with various casings
+          const headers = { [headerName]: headerValue };
 
-            // Act
-            const result = extractHeaderValue(headers, headerName);
+          // Act
+          const result = extractHeaderValue(headers, headerName);
 
-            // Assert
-            expect(result).toBe(headerValue);
-          },
-        ),
+          // Assert
+          expect(result).toBe(headerValue);
+        }),
         { numRuns: 100 },
       );
     });
@@ -155,24 +142,19 @@ describe('Lambda Authorizer Handler', () => {
      */
     test('extractHeaderValue returns undefined when header does not exist', () => {
       fc.assert(
-        fc.property(
-          headerNameArb,
-          headerNameArb,
-          headerValueArb,
-          (searchName, existingName, existingValue) => {
-            // Only test when names are different
-            fc.pre(searchName.toLowerCase() !== existingName.toLowerCase());
+        fc.property(headerNameArb, headerNameArb, headerValueArb, (searchName, existingName, existingValue) => {
+          // Only test when names are different
+          fc.pre(searchName.toLowerCase() !== existingName.toLowerCase());
 
-            // Arrange
-            const headers = { [existingName]: existingValue };
+          // Arrange
+          const headers = { [existingName]: existingValue };
 
-            // Act
-            const result = extractHeaderValue(headers, searchName);
+          // Act
+          const result = extractHeaderValue(headers, searchName);
 
-            // Assert
-            expect(result).toBeUndefined();
-          },
-        ),
+          // Assert
+          expect(result).toBeUndefined();
+        }),
         { numRuns: 100 },
       );
     });
@@ -261,15 +243,9 @@ describe('Lambda Authorizer Handler', () => {
           const headers = { 'X-Origin-Verify': headerValue };
 
           // Act & Assert - should find with any casing
-          expect(extractHeaderValue(headers, 'x-origin-verify')).toBe(
-            headerValue,
-          );
-          expect(extractHeaderValue(headers, 'X-ORIGIN-VERIFY')).toBe(
-            headerValue,
-          );
-          expect(extractHeaderValue(headers, 'X-Origin-Verify')).toBe(
-            headerValue,
-          );
+          expect(extractHeaderValue(headers, 'x-origin-verify')).toBe(headerValue);
+          expect(extractHeaderValue(headers, 'X-ORIGIN-VERIFY')).toBe(headerValue);
+          expect(extractHeaderValue(headers, 'X-Origin-Verify')).toBe(headerValue);
         }),
         { numRuns: 100 },
       );
@@ -289,12 +265,7 @@ describe('Lambda Authorizer Handler', () => {
           fc.integer({ min: 1, max: 3600 }), // TTL in seconds
           fc.integer({ min: 0, max: 1000000000000 }), // Base time
           fc.integer({ min: 0, max: 3600 }), // Time offset within TTL
-          (
-            value: string,
-            ttlSeconds: number,
-            baseTime: number,
-            timeOffset: number,
-          ) => {
+          (value: string, ttlSeconds: number, baseTime: number, timeOffset: number) => {
             // Arrange
             const cache = createCacheEntry(value, ttlSeconds, baseTime);
             // Current time is within TTL
@@ -322,12 +293,7 @@ describe('Lambda Authorizer Handler', () => {
           fc.integer({ min: 1, max: 3600 }), // TTL in seconds
           fc.integer({ min: 0, max: 1000000000000 }), // Base time
           fc.integer({ min: 0, max: 3600 }), // Time offset after TTL
-          (
-            value: string,
-            ttlSeconds: number,
-            baseTime: number,
-            timeOffset: number,
-          ) => {
+          (value: string, ttlSeconds: number, baseTime: number, timeOffset: number) => {
             // Arrange
             const cache = createCacheEntry(value, ttlSeconds, baseTime);
             // Current time is at or after expiration
@@ -348,13 +314,10 @@ describe('Lambda Authorizer Handler', () => {
      */
     test('isCacheValid returns false when cache is null', () => {
       fc.assert(
-        fc.property(
-          fc.integer({ min: 0, max: 1000000000000 }),
-          (currentTime: number) => {
-            // Act & Assert
-            expect(isCacheValid(null, currentTime)).toBe(false);
-          },
-        ),
+        fc.property(fc.integer({ min: 0, max: 1000000000000 }), (currentTime: number) => {
+          // Act & Assert
+          expect(isCacheValid(null, currentTime)).toBe(false);
+        }),
         { numRuns: 100 },
       );
     });

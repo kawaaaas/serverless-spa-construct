@@ -2,12 +2,7 @@ import { App, RemovalPolicy, Stack } from 'aws-cdk-lib';
 import { Match, Template } from 'aws-cdk-lib/assertions';
 import { RestApi } from 'aws-cdk-lib/aws-apigateway';
 import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
-import {
-  Code,
-  Function as LambdaFunction,
-  Runtime,
-  Version,
-} from 'aws-cdk-lib/aws-lambda';
+import { Code, Function as LambdaFunction, Runtime, Version } from 'aws-cdk-lib/aws-lambda';
 import { FrontendConstruct } from '../../src/constructs/frontend-construct';
 
 describe('FrontendConstruct', () => {
@@ -126,9 +121,7 @@ describe('FrontendConstruct', () => {
       template.hasResourceProperties('AWS::CloudFront::Distribution', {
         DistributionConfig: {
           DefaultCacheBehavior: {
-            FunctionAssociations: Match.arrayWith([
-              Match.objectLike({ EventType: 'viewer-request' }),
-            ]),
+            FunctionAssociations: Match.arrayWith([Match.objectLike({ EventType: 'viewer-request' })]),
           },
         },
       });
@@ -148,9 +141,7 @@ describe('FrontendConstruct', () => {
       const template = Template.fromStack(stack);
       template.hasResourceProperties('AWS::CloudFront::Distribution', {
         DistributionConfig: {
-          CacheBehaviors: Match.arrayWith([
-            Match.objectLike({ PathPattern: '/api/*' }),
-          ]),
+          CacheBehaviors: Match.arrayWith([Match.objectLike({ PathPattern: '/api/*' })]),
         },
       });
     });
@@ -226,8 +217,7 @@ describe('FrontendConstruct', () => {
 
   describe('WAF WebACL', () => {
     test('applies WAF WebACL when webAclArn is provided', () => {
-      const webAclArn =
-        'arn:aws:wafv2:us-east-1:123456789012:global/webacl/test-acl/12345678-1234-1234-1234-123456789012';
+      const webAclArn = 'arn:aws:wafv2:us-east-1:123456789012:global/webacl/test-acl/12345678-1234-1234-1234-123456789012';
       new FrontendConstruct(stack, 'Frontend', { webAclArn });
       const template = Template.fromStack(stack);
       template.hasResourceProperties('AWS::CloudFront::Distribution', {
@@ -296,9 +286,7 @@ describe('FrontendConstruct', () => {
           CacheBehaviors: Match.arrayWith([
             Match.objectLike({
               PathPattern: '/api/*',
-              LambdaFunctionAssociations: Match.arrayWith([
-                Match.objectLike({ EventType: 'origin-request' }),
-              ]),
+              LambdaFunctionAssociations: Match.arrayWith([Match.objectLike({ EventType: 'origin-request' })]),
             }),
           ]),
         },
@@ -344,13 +332,8 @@ describe('Preservation: No Custom Domain Deployment', () => {
   });
 
   test('applies provided external certificate to CloudFront distribution', () => {
-    const certArn =
-      'arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012';
-    const certificate = Certificate.fromCertificateArn(
-      stack,
-      'ImportedCert',
-      certArn,
-    );
+    const certArn = 'arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012';
+    const certificate = Certificate.fromCertificateArn(stack, 'ImportedCert', certArn);
     new FrontendConstruct(stack, 'Frontend', {
       domainName: 'www.example.com',
       certificate,
@@ -426,13 +409,8 @@ describe('Certificate Validation (Post-Fix)', () => {
   });
 
   test('works correctly when domainName and certificate are both provided', () => {
-    const certArn =
-      'arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012';
-    const certificate = Certificate.fromCertificateArn(
-      stack,
-      'ImportedCert',
-      certArn,
-    );
+    const certArn = 'arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012';
+    const certificate = Certificate.fromCertificateArn(stack, 'ImportedCert', certArn);
     const frontend = new FrontendConstruct(stack, 'Frontend', {
       domainName: 'www.example.com',
       certificate,
@@ -454,13 +432,8 @@ describe('Certificate Validation (Post-Fix)', () => {
   });
 
   test('does not create ACM certificate resource when external certificate is provided', () => {
-    const certArn =
-      'arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012';
-    const certificate = Certificate.fromCertificateArn(
-      stack,
-      'ImportedCert',
-      certArn,
-    );
+    const certArn = 'arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012';
+    const certificate = Certificate.fromCertificateArn(stack, 'ImportedCert', certArn);
     new FrontendConstruct(stack, 'Frontend', {
       domainName: 'www.example.com',
       certificate,

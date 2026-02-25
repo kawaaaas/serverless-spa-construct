@@ -287,11 +287,7 @@ export class ServerlessSpaSecurityConstruct extends Construct {
    * Creates a minimal ServerlessSpaSecurityConstruct with custom header only (no WAF).
    * Best for: Development, testing, or when WAF is not needed.
    */
-  public static minimal(
-    scope: Construct,
-    id: string,
-    props: MinimalSecurityProps,
-  ): ServerlessSpaSecurityConstruct {
+  public static minimal(scope: Construct, id: string, props: MinimalSecurityProps): ServerlessSpaSecurityConstruct {
     return new ServerlessSpaSecurityConstruct(scope, id, {
       enableWaf: false,
       enableCustomHeader: true,
@@ -308,11 +304,7 @@ export class ServerlessSpaSecurityConstruct extends Construct {
    * Creates a ServerlessSpaSecurityConstruct with WAF protection.
    * Best for: Production deployments requiring WAF protection.
    */
-  public static withWaf(
-    scope: Construct,
-    id: string,
-    props: WithWafSecurityProps,
-  ): ServerlessSpaSecurityConstruct {
+  public static withWaf(scope: Construct, id: string, props: WithWafSecurityProps): ServerlessSpaSecurityConstruct {
     return new ServerlessSpaSecurityConstruct(scope, id, {
       enableWaf: true,
       enableCustomHeader: true,
@@ -332,11 +324,7 @@ export class ServerlessSpaSecurityConstruct extends Construct {
    * Creates a ServerlessSpaSecurityConstruct with custom header + ACM certificate (no WAF).
    * Best for: Custom domain deployments without WAF protection.
    */
-  public static withCertificate(
-    scope: Construct,
-    id: string,
-    props: WithCertificateSecurityProps,
-  ): ServerlessSpaSecurityConstruct {
+  public static withCertificate(scope: Construct, id: string, props: WithCertificateSecurityProps): ServerlessSpaSecurityConstruct {
     return new ServerlessSpaSecurityConstruct(scope, id, {
       enableWaf: false,
       enableCustomHeader: true,
@@ -357,11 +345,7 @@ export class ServerlessSpaSecurityConstruct extends Construct {
    * Creates a ServerlessSpaSecurityConstruct with WAF + custom header + ACM certificate.
    * Best for: Production custom domain deployments with full security.
    */
-  public static withWafAndCertificate(
-    scope: Construct,
-    id: string,
-    props: WithWafAndCertificateSecurityProps,
-  ): ServerlessSpaSecurityConstruct {
+  public static withWafAndCertificate(scope: Construct, id: string, props: WithWafAndCertificateSecurityProps): ServerlessSpaSecurityConstruct {
     return new ServerlessSpaSecurityConstruct(scope, id, {
       enableWaf: true,
       enableCustomHeader: true,
@@ -464,9 +448,7 @@ export class ServerlessSpaSecurityConstruct extends Construct {
     // Validate region is us-east-1
     const region = Stack.of(this).region;
     if (region !== 'us-east-1' && !Token.isUnresolved(region)) {
-      throw new Error(
-        `ServerlessSpaSecurityConstruct must be deployed in us-east-1 region. Current region: ${region}`,
-      );
+      throw new Error(`ServerlessSpaSecurityConstruct must be deployed in us-east-1 region. Current region: ${region}`);
     }
 
     // Determine the SSM prefix (used by multiple constructs)
@@ -512,9 +494,7 @@ export class ServerlessSpaSecurityConstruct extends Construct {
     const enableCertificate = props?.enableCertificate ?? false;
     if (enableCertificate) {
       if (!props?.domainName || !props?.hostedZoneId || !props?.zoneName) {
-        throw new Error(
-          'domainName, hostedZoneId, and zoneName are required when enableCertificate is true',
-        );
+        throw new Error('domainName, hostedZoneId, and zoneName are required when enableCertificate is true');
       }
 
       this.certificateConstruct = new CertificateConstruct(this, 'Certificate', {

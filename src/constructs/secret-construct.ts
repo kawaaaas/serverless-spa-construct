@@ -3,11 +3,7 @@ import { Duration, RemovalPolicy } from 'aws-cdk-lib';
 import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { IFunction, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
-import {
-  ISecret,
-  RotationSchedule,
-  Secret,
-} from 'aws-cdk-lib/aws-secretsmanager';
+import { ISecret, RotationSchedule, Secret } from 'aws-cdk-lib/aws-secretsmanager';
 import { Construct } from 'constructs';
 
 /**
@@ -141,8 +137,7 @@ export class SecretConstruct extends Construct {
     super(scope, id);
 
     // Set default values
-    this.customHeaderName =
-      props?.customHeaderName ?? DEFAULT_CUSTOM_HEADER_NAME;
+    this.customHeaderName = props?.customHeaderName ?? DEFAULT_CUSTOM_HEADER_NAME;
     this.rotationDays = props?.rotationDays ?? DEFAULT_ROTATION_DAYS;
     this.ssmPrefix = props?.ssmPrefix ?? DEFAULT_SSM_PREFIX;
     this.replicaRegions = props?.replicaRegions ?? DEFAULT_REPLICA_REGIONS;
@@ -150,9 +145,7 @@ export class SecretConstruct extends Construct {
 
     // Validate replica regions - us-east-1 cannot be a replica region (it's the primary)
     if (this.replicaRegions.includes(PRIMARY_REGION)) {
-      throw new Error(
-        `${PRIMARY_REGION} cannot be specified as a replica region (it is the primary region)`,
-      );
+      throw new Error(`${PRIMARY_REGION} cannot be specified as a replica region (it is the primary region)`);
     }
 
     // Compute the secret name (without random suffix added by AWS)

@@ -1,10 +1,6 @@
 import { GetSecretValueCommand, SecretsManagerClient } from '@aws-sdk/client-secrets-manager';
 import { CognitoJwtVerifier } from 'aws-jwt-verify';
-import {
-  APIGatewayAuthorizerResult,
-  APIGatewayRequestAuthorizerEvent,
-  APIGatewayRequestAuthorizerHandler,
-} from 'aws-lambda';
+import { APIGatewayAuthorizerResult, APIGatewayRequestAuthorizerEvent, APIGatewayRequestAuthorizerHandler } from 'aws-lambda';
 
 /**
  * Secret cache structure for storing secret values with TTL.
@@ -98,11 +94,7 @@ export function isCacheValid(cache: SecretCache | null, currentTime: number): bo
 /**
  * Creates a new cache entry with the given value and TTL.
  */
-export function createCacheEntry(
-  value: string,
-  ttlSeconds: number,
-  currentTime: number,
-): SecretCache {
+export function createCacheEntry(value: string, ttlSeconds: number, currentTime: number): SecretCache {
   return {
     value,
     expiresAt: currentTime + ttlSeconds * 1000,
@@ -160,11 +152,7 @@ async function getSecretValue(): Promise<string> {
 /**
  * Generates an IAM policy document for API Gateway authorization.
  */
-export function generatePolicy(
-  principalId: string,
-  effect: 'Allow' | 'Deny',
-  resource: string,
-): APIGatewayAuthorizerResult {
+export function generatePolicy(principalId: string, effect: 'Allow' | 'Deny', resource: string): APIGatewayAuthorizerResult {
   return {
     principalId,
     policyDocument: {
@@ -184,10 +172,7 @@ export function generatePolicy(
  * Extracts the custom header value from the request headers.
  * Headers are case-insensitive, so we normalize to lowercase.
  */
-export function extractHeaderValue(
-  headers: { [key: string]: string | undefined } | null | undefined,
-  headerName: string,
-): string | undefined {
+export function extractHeaderValue(headers: { [key: string]: string | undefined } | null | undefined, headerName: string): string | undefined {
   if (!headers) {
     return undefined;
   }
@@ -207,10 +192,7 @@ export function extractHeaderValue(
 /**
  * Validates the custom header value against the expected secret value.
  */
-export function validateHeaderValue(
-  actualValue: string | undefined,
-  expectedValue: string,
-): boolean {
+export function validateHeaderValue(actualValue: string | undefined, expectedValue: string): boolean {
   if (!actualValue) {
     return false;
   }
@@ -221,9 +203,7 @@ export function validateHeaderValue(
  * Extracts the JWT token from the Authorization header.
  * Supports both "Bearer <token>" and raw token formats.
  */
-export function extractJwtToken(
-  headers: { [key: string]: string | undefined } | null | undefined,
-): string | undefined {
+export function extractJwtToken(headers: { [key: string]: string | undefined } | null | undefined): string | undefined {
   if (!headers) {
     return undefined;
   }
@@ -297,9 +277,7 @@ export async function validateJwtToken(token: string): Promise<unknown | null> {
  * The custom header is set by Lambda@Edge at CloudFront Origin Request.
  * This ensures that only requests coming through CloudFront with valid JWT are allowed.
  */
-export const handler: APIGatewayRequestAuthorizerHandler = async (
-  event: APIGatewayRequestAuthorizerEvent,
-): Promise<APIGatewayAuthorizerResult> => {
+export const handler: APIGatewayRequestAuthorizerHandler = async (event: APIGatewayRequestAuthorizerEvent): Promise<APIGatewayAuthorizerResult> => {
   const customHeaderName = getCustomHeaderName();
   const methodArn = event.methodArn;
   const userPoolId = getUserPoolId();

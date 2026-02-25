@@ -1,9 +1,4 @@
-import {
-  IUserPool,
-  IUserPoolClient,
-  UserPool,
-  UserPoolClient,
-} from 'aws-cdk-lib/aws-cognito';
+import { IUserPool, IUserPoolClient, UserPool, UserPoolClient } from 'aws-cdk-lib/aws-cognito';
 import { Construct } from 'constructs';
 
 /**
@@ -43,8 +38,9 @@ export class AuthConstruct extends Construct {
    */
   public readonly userPoolClientId: string;
 
-  constructor(scope: Construct, id: string, _props?: AuthConstructProps) {
+  constructor(scope: Construct, id: string, props?: AuthConstructProps) {
     super(scope, id);
+    void props;
 
     // Create User Pool with defaults
     const userPool = new UserPool(this, 'UserPool', {

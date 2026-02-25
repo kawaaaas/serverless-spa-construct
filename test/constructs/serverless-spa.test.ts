@@ -158,9 +158,7 @@ describe('ServerlessSpa', () => {
       const template = Template.fromStack(stack);
       template.hasResourceProperties('AWS::CloudFront::Distribution', {
         DistributionConfig: {
-          CacheBehaviors: Match.arrayWith([
-            Match.objectLike({ PathPattern: '/api/*' }),
-          ]),
+          CacheBehaviors: Match.arrayWith([Match.objectLike({ PathPattern: '/api/*' })]),
         },
       });
     });
@@ -224,9 +222,7 @@ describe('ServerlessSpa', () => {
       });
       expect(spa.distributionDomainName).toBeDefined();
       expect(typeof spa.distributionDomainName).toBe('string');
-      expect(spa.distributionDomainName).toBe(
-        spa.frontend.distributionDomainName,
-      );
+      expect(spa.distributionDomainName).toBe(spa.frontend.distributionDomainName);
     });
 
     test('exposes apiUrl convenience property', () => {
@@ -430,9 +426,7 @@ describe('ServerlessSpa Factory Methods', () => {
       });
       const template = Template.fromStack(stack);
       template.hasResourceProperties('AWS::CloudFront::Distribution', {
-        DistributionConfig: Match.not(
-          Match.objectLike({ WebACLId: Match.anyValue() }),
-        ),
+        DistributionConfig: Match.not(Match.objectLike({ WebACLId: Match.anyValue() })),
       });
     });
 
@@ -775,11 +769,7 @@ describe('ServerlessSpa Factory Methods', () => {
       const template = Template.fromStack(stack);
       template.hasResourceProperties('AWS::CloudFront::Distribution', {
         DistributionConfig: {
-          Aliases: Match.arrayWith([
-            'www.example.com',
-            'example.com',
-            'api.example.com',
-          ]),
+          Aliases: Match.arrayWith(['www.example.com', 'example.com', 'api.example.com']),
         },
       });
     });
@@ -812,9 +802,7 @@ describe('ServerlessSpa Factory Methods', () => {
       });
       const template = Template.fromStack(stack);
       template.hasResourceProperties('Custom::AWS', {
-        Create: Match.stringLikeRegexp(
-          '/myapp/security/edge-function-version-arn',
-        ),
+        Create: Match.stringLikeRegexp('/myapp/security/edge-function-version-arn'),
       });
     });
 
@@ -849,9 +837,7 @@ describe('ServerlessSpa Lambda@Edge Integration', () => {
     });
     const template = Template.fromStack(stack);
     template.hasResourceProperties('Custom::AWS', {
-      Create: Match.stringLikeRegexp(
-        '/myapp/security/edge-function-version-arn',
-      ),
+      Create: Match.stringLikeRegexp('/myapp/security/edge-function-version-arn'),
     });
   });
 

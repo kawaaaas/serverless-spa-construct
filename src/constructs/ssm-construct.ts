@@ -144,15 +144,11 @@ export class SsmConstruct extends Construct {
 
     // Create SSM Parameter for Lambda@Edge function version ARN (if provided)
     if (props.edgeFunctionVersionArn) {
-      this.edgeFunctionVersionArnParameter = new StringParameter(
-        this,
-        'EdgeFunctionVersionArnParameter',
-        {
-          parameterName: `${this.ssmPrefix}edge-function-version-arn`,
-          stringValue: props.edgeFunctionVersionArn,
-          description: 'Lambda@Edge function version ARN for CloudFront origin request',
-        },
-      );
+      this.edgeFunctionVersionArnParameter = new StringParameter(this, 'EdgeFunctionVersionArnParameter', {
+        parameterName: `${this.ssmPrefix}edge-function-version-arn`,
+        stringValue: props.edgeFunctionVersionArn,
+        description: 'Lambda@Edge function version ARN for CloudFront origin request',
+      });
     }
 
     // Create SSM Parameter for ACM certificate ARN (if provided)

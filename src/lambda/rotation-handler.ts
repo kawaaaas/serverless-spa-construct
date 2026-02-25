@@ -26,9 +26,7 @@ const ssm = new SSMClient({});
  * - testSecret: Not used (no external service to test)
  * - finishSecret: Mark the new version as current
  */
-export const handler: SecretsManagerRotationHandler = async (
-  event: SecretsManagerRotationEvent,
-): Promise<void> => {
+export const handler: SecretsManagerRotationHandler = async (event: SecretsManagerRotationEvent): Promise<void> => {
   const { SecretId, ClientRequestToken, Step } = event;
   const ssmPrefix = process.env.SSM_PREFIX || '/myapp/security/';
   const customHeaderName = process.env.CUSTOM_HEADER_NAME || 'x-origin-verify';
@@ -58,11 +56,7 @@ export const handler: SecretsManagerRotationHandler = async (
 /**
  * Creates a new secret version with a new UUID value.
  */
-async function createSecret(
-  secretId: string,
-  clientRequestToken: string,
-  customHeaderName: string,
-): Promise<void> {
+async function createSecret(secretId: string, clientRequestToken: string, customHeaderName: string): Promise<void> {
   // Check if the secret version already exists
   try {
     await secretsManager.send(
@@ -102,11 +96,7 @@ async function createSecret(
  * Finishes the rotation by marking the new version as current
  * and updating SSM parameters.
  */
-async function finishSecret(
-  secretId: string,
-  clientRequestToken: string,
-  ssmPrefix: string,
-): Promise<void> {
+async function finishSecret(secretId: string, clientRequestToken: string, ssmPrefix: string): Promise<void> {
   // Get the secret metadata to find the current version
   const describeResponse = await secretsManager.send(
     new DescribeSecretCommand({

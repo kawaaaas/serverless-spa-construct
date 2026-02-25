@@ -42,8 +42,7 @@ describe('SsmConstruct', () => {
     test('creates exactly 4 SSM Parameters with certificate ARN', () => {
       new SsmConstruct(stack, 'Ssm', {
         ...defaultProps,
-        certificateArn:
-          'arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012',
+        certificateArn: 'arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012',
       });
 
       const template = Template.fromStack(stack);
@@ -51,8 +50,7 @@ describe('SsmConstruct', () => {
     });
 
     test('creates certificate-arn parameter with correct value', () => {
-      const certArn =
-        'arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012';
+      const certArn = 'arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012';
       new SsmConstruct(stack, 'Ssm', {
         ...defaultProps,
         certificateArn: certArn,
@@ -197,8 +195,7 @@ describe('SsmConstruct', () => {
     test('exposes certificateArnParameter property when provided', () => {
       const ssm = new SsmConstruct(stack, 'Ssm', {
         ...defaultProps,
-        certificateArn:
-          'arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012',
+        certificateArn: 'arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012',
       });
 
       expect(ssm.certificateArnParameter).toBeDefined();

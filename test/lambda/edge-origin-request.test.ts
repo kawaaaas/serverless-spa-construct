@@ -1,11 +1,6 @@
 import { CloudFrontRequestEvent } from 'aws-lambda';
 import * as fc from 'fast-check';
-import {
-  addCustomHeader,
-  clearCache,
-  createCacheEntry,
-  isCacheValid,
-} from '../../src/lambda/edge-origin-request';
+import { addCustomHeader, clearCache, createCacheEntry, isCacheValid } from '../../src/lambda/edge-origin-request';
 
 /**
  * Creates a mock CloudFront request for testing.
@@ -37,13 +32,10 @@ function createMockRequest(): CloudFrontRequestEvent['Records'][0]['cf']['reques
  * Header names should be alphanumeric with hyphens, starting with x-.
  */
 const headerNameArb: fc.Arbitrary<string> = fc
-  .array(
-    fc.constantFrom(...'abcdefghijklmnopqrstuvwxyz0123456789-'.split('')),
-    {
-      minLength: 1,
-      maxLength: 20,
-    },
-  )
+  .array(fc.constantFrom(...'abcdefghijklmnopqrstuvwxyz0123456789-'.split('')), {
+    minLength: 1,
+    maxLength: 20,
+  })
   .map((chars: string[]) => `x-${chars.join('')}`);
 
 /**
@@ -51,13 +43,10 @@ const headerNameArb: fc.Arbitrary<string> = fc
  * Header values should be non-empty strings without control characters.
  */
 const headerValueArb: fc.Arbitrary<string> = fc
-  .array(
-    fc.constantFrom(...'abcdefghijklmnopqrstuvwxyz0123456789-_'.split('')),
-    {
-      minLength: 1,
-      maxLength: 64,
-    },
-  )
+  .array(fc.constantFrom(...'abcdefghijklmnopqrstuvwxyz0123456789-_'.split('')), {
+    minLength: 1,
+    maxLength: 64,
+  })
   .map((chars: string[]) => chars.join(''));
 
 describe('Lambda@Edge Origin Request Handler', () => {
@@ -78,28 +67,20 @@ describe('Lambda@Edge Origin Request Handler', () => {
      */
     test('addCustomHeader always adds the specified header to the request', () => {
       fc.assert(
-        fc.property(
-          headerNameArb,
-          headerValueArb,
-          (headerName: string, headerValue: string) => {
-            // Arrange
-            const request = createMockRequest();
+        fc.property(headerNameArb, headerValueArb, (headerName: string, headerValue: string) => {
+          // Arrange
+          const request = createMockRequest();
 
-            // Act
-            const result = addCustomHeader(request, headerName, headerValue);
+          // Act
+          const result = addCustomHeader(request, headerName, headerValue);
 
-            // Assert
-            const normalizedHeaderName = headerName.toLowerCase();
-            expect(result.headers[normalizedHeaderName]).toBeDefined();
-            expect(result.headers[normalizedHeaderName]).toHaveLength(1);
-            expect(result.headers[normalizedHeaderName][0].key).toBe(
-              headerName,
-            );
-            expect(result.headers[normalizedHeaderName][0].value).toBe(
-              headerValue,
-            );
-          },
-        ),
+          // Assert
+          const normalizedHeaderName = headerName.toLowerCase();
+          expect(result.headers[normalizedHeaderName]).toBeDefined();
+          expect(result.headers[normalizedHeaderName]).toHaveLength(1);
+          expect(result.headers[normalizedHeaderName][0].key).toBe(headerName);
+          expect(result.headers[normalizedHeaderName][0].value).toBe(headerValue);
+        }),
         { numRuns: 100 },
       );
     });
@@ -110,24 +91,17 @@ describe('Lambda@Edge Origin Request Handler', () => {
      * **Validates: Requirements 2.3**
      */
     test('addCustomHeader preserves existing headers', () => {
-      const existingHeadersArb = fc.array(
-        fc.tuple(headerNameArb, headerValueArb),
-        {
-          minLength: 1,
-          maxLength: 5,
-        },
-      );
+      const existingHeadersArb = fc.array(fc.tuple(headerNameArb, headerValueArb), {
+        minLength: 1,
+        maxLength: 5,
+      });
 
       fc.assert(
         fc.property(
           headerNameArb,
           headerValueArb,
           existingHeadersArb,
-          (
-            newHeaderName: string,
-            newHeaderValue: string,
-            existingHeaders: [string, string][],
-          ) => {
+          (newHeaderName: string, newHeaderValue: string, existingHeaders: [string, string][]) => {
             // Arrange
             const request = createMockRequest();
 
@@ -140,24 +114,16 @@ describe('Lambda@Edge Origin Request Handler', () => {
             const existingHeaderCount = Object.keys(request.headers).length;
 
             // Act
-            const result = addCustomHeader(
-              request,
-              newHeaderName,
-              newHeaderValue,
-            );
+            const result = addCustomHeader(request, newHeaderName, newHeaderValue);
 
             // Assert
             // The new header should be added
             const normalizedNewName = newHeaderName.toLowerCase();
             expect(result.headers[normalizedNewName]).toBeDefined();
-            expect(result.headers[normalizedNewName][0].value).toBe(
-              newHeaderValue,
-            );
+            expect(result.headers[normalizedNewName][0].value).toBe(newHeaderValue);
 
             // Existing headers should be preserved (unless overwritten by same name)
-            const expectedCount = existingHeaders.some(
-              ([name]) => name.toLowerCase() === normalizedNewName,
-            )
+            const expectedCount = existingHeaders.some(([name]) => name.toLowerCase() === normalizedNewName)
               ? existingHeaderCount
               : existingHeaderCount + 1;
             expect(Object.keys(result.headers).length).toBe(expectedCount);
@@ -209,12 +175,7 @@ describe('Lambda@Edge Origin Request Handler', () => {
           fc.integer({ min: 1, max: 3600 }), // TTL in seconds
           fc.integer({ min: 0, max: 1000000000000 }), // Base time
           fc.integer({ min: 0, max: 3600 }), // Time offset within TTL
-          (
-            value: string,
-            ttlSeconds: number,
-            baseTime: number,
-            timeOffset: number,
-          ) => {
+          (value: string, ttlSeconds: number, baseTime: number, timeOffset: number) => {
             // Arrange
             const cache = createCacheEntry(value, ttlSeconds, baseTime);
             // Current time is within TTL
@@ -242,12 +203,7 @@ describe('Lambda@Edge Origin Request Handler', () => {
           fc.integer({ min: 1, max: 3600 }), // TTL in seconds
           fc.integer({ min: 0, max: 1000000000000 }), // Base time
           fc.integer({ min: 0, max: 3600 }), // Time offset after TTL
-          (
-            value: string,
-            ttlSeconds: number,
-            baseTime: number,
-            timeOffset: number,
-          ) => {
+          (value: string, ttlSeconds: number, baseTime: number, timeOffset: number) => {
             // Arrange
             const cache = createCacheEntry(value, ttlSeconds, baseTime);
             // Current time is at or after expiration
@@ -268,13 +224,10 @@ describe('Lambda@Edge Origin Request Handler', () => {
      */
     test('isCacheValid returns false when cache is null', () => {
       fc.assert(
-        fc.property(
-          fc.integer({ min: 0, max: 1000000000000 }),
-          (currentTime: number) => {
-            // Act & Assert
-            expect(isCacheValid(null, currentTime)).toBe(false);
-          },
-        ),
+        fc.property(fc.integer({ min: 0, max: 1000000000000 }), (currentTime: number) => {
+          // Act & Assert
+          expect(isCacheValid(null, currentTime)).toBe(false);
+        }),
         { numRuns: 100 },
       );
     });

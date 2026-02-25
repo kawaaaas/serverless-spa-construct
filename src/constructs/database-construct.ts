@@ -1,11 +1,5 @@
 import { RemovalPolicy } from 'aws-cdk-lib';
-import {
-  Attribute,
-  AttributeType,
-  BillingMode,
-  GlobalSecondaryIndexProps,
-  Table,
-} from 'aws-cdk-lib/aws-dynamodb';
+import { Attribute, AttributeType, BillingMode, GlobalSecondaryIndexProps, Table } from 'aws-cdk-lib/aws-dynamodb';
 import { Construct } from 'constructs';
 
 /**
@@ -97,10 +91,9 @@ export class DatabaseConstruct extends Construct {
     };
 
     // Default sort key: SK (String), unless explicitly disabled
-    const sortKey: Attribute | undefined =
-      props?.disableSortKey
-        ? undefined
-        : (props?.sortKey ?? {
+    const sortKey: Attribute | undefined = props?.disableSortKey
+      ? undefined
+      : (props?.sortKey ?? {
           name: 'SK',
           type: AttributeType.STRING,
         });

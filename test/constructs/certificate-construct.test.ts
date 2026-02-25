@@ -65,9 +65,7 @@ describe('CertificateConstruct', () => {
       });
 
       const template = Template.fromStack(stack);
-      const certs = template.findResources(
-        'AWS::CertificateManager::Certificate',
-      );
+      const certs = template.findResources('AWS::CertificateManager::Certificate');
       const certProps = Object.values(certs)[0].Properties;
       expect(certProps.SubjectAlternativeNames).toBeUndefined();
     });

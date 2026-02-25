@@ -1,12 +1,5 @@
 import * as path from 'path';
-import {
-  Arn,
-  ArnFormat,
-  Duration,
-  RemovalPolicy,
-  Stack,
-  Token,
-} from 'aws-cdk-lib';
+import { Arn, ArnFormat, Duration, RemovalPolicy, Stack, Token } from 'aws-cdk-lib';
 import { PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction, OutputFormat } from 'aws-cdk-lib/aws-lambda-nodejs';
@@ -94,14 +87,11 @@ export class LambdaEdgeConstruct extends Construct {
     // Validate region is us-east-1
     const region = Stack.of(this).region;
     if (region !== 'us-east-1' && !Token.isUnresolved(region)) {
-      throw new Error(
-        `LambdaEdgeConstruct must be deployed in us-east-1 region. Current region: ${region}`,
-      );
+      throw new Error(`LambdaEdgeConstruct must be deployed in us-east-1 region. Current region: ${region}`);
     }
 
     // Set default values
-    const customHeaderName =
-      props.customHeaderName ?? DEFAULT_CUSTOM_HEADER_NAME;
+    const customHeaderName = props.customHeaderName ?? DEFAULT_CUSTOM_HEADER_NAME;
     const cacheTtlSeconds = props.cacheTtlSeconds ?? DEFAULT_CACHE_TTL_SECONDS;
     const removalPolicy = props.removalPolicy;
 
@@ -114,8 +104,7 @@ export class LambdaEdgeConstruct extends Construct {
       handler: 'handler',
       timeout: Duration.seconds(5), // Lambda@Edge has max 5 seconds for origin request
       memorySize: 128,
-      description:
-        'Lambda@Edge function for adding custom header to origin requests',
+      description: 'Lambda@Edge function for adding custom header to origin requests',
       currentVersionOptions: {
         removalPolicy,
       },
@@ -127,9 +116,7 @@ export class LambdaEdgeConstruct extends Construct {
           'process.env.SECRET_NAME': JSON.stringify(props.secretName),
           'process.env.SECRET_REGION': JSON.stringify('us-east-1'),
           'process.env.CUSTOM_HEADER_NAME': JSON.stringify(customHeaderName),
-          'process.env.CACHE_TTL_SECONDS': JSON.stringify(
-            String(cacheTtlSeconds),
-          ),
+          'process.env.CACHE_TTL_SECONDS': JSON.stringify(String(cacheTtlSeconds)),
         },
         // Minify for smaller bundle size (Lambda@Edge has size limits)
         minify: true,

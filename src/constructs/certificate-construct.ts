@@ -1,8 +1,4 @@
-import {
-  Certificate,
-  CertificateValidation,
-  ICertificate,
-} from 'aws-cdk-lib/aws-certificatemanager';
+import { Certificate, CertificateValidation, ICertificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { HostedZone, IHostedZone } from 'aws-cdk-lib/aws-route53';
 import { Construct } from 'constructs';
 

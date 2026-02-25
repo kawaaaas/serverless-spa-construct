@@ -139,10 +139,7 @@ export class ApiConstruct extends Construct {
     if (props.secretArn) {
       lambdaHandler.addToRolePolicy(
         new PolicyStatement({
-          actions: [
-            'secretsmanager:GetSecretValue',
-            'secretsmanager:DescribeSecret',
-          ],
+          actions: ['secretsmanager:GetSecretValue', 'secretsmanager:DescribeSecret'],
           resources: [props.secretArn],
         }),
       );
@@ -166,28 +163,19 @@ export class ApiConstruct extends Construct {
     const lambdaIntegration = new LambdaIntegration(lambdaHandler);
 
     // Determine if Lambda Authorizer should be created
-    const enableLambdaAuthorizer =
-      props.enableLambdaAuthorizer !== undefined
-        ? props.enableLambdaAuthorizer
-        : props.secretArn !== undefined;
+    const enableLambdaAuthorizer = props.enableLambdaAuthorizer !== undefined ? props.enableLambdaAuthorizer : props.secretArn !== undefined;
 
     // Determine if we should use Lambda Authorizer (instead of Cognito Authorizer)
     // Use Lambda Authorizer when:
     // 1. Both userPool and secretArn are provided (validate both JWT and custom header)
     // 2. Only secretArn is provided (validate custom header only)
-    const useLambdaAuthorizer =
-      enableLambdaAuthorizer &&
-      props.secretArn &&
-      (props.userPool || !props.userPool);
+    const useLambdaAuthorizer = enableLambdaAuthorizer && props.secretArn && (props.userPool || !props.userPool);
 
     // Create Lambda Authorizer function if needed
     if (useLambdaAuthorizer) {
       // Convert secret ARN to local region for accessing the replica
       const localRegion = Stack.of(this).region;
-      const localSecretArn = this.convertSecretArnToRegion(
-        props.secretArn!,
-        localRegion,
-      );
+      const localSecretArn = this.convertSecretArnToRegion(props.secretArn!, localRegion);
 
       // Prepare environment variables
       const authorizerEnv: Record<string, string> = {
@@ -202,9 +190,7 @@ export class ApiConstruct extends Construct {
 
         // Client ID is required for JWT validation
         if (!props.userPoolClientId) {
-          throw new Error(
-            'userPoolClientId is required when both userPool and secretArn are provided for Lambda Authorizer',
-          );
+          throw new Error('userPoolClientId is required when both userPool and secretArn are provided for Lambda Authorizer');
         }
         authorizerEnv.CLIENT_ID = props.userPoolClientId;
       }
@@ -222,10 +208,7 @@ export class ApiConstruct extends Construct {
       // Grant Lambda Authorizer read access to Secrets Manager replica
       authorizerHandler.addToRolePolicy(
         new PolicyStatement({
-          actions: [
-            'secretsmanager:GetSecretValue',
-            'secretsmanager:DescribeSecret',
-          ],
+          actions: ['secretsmanager:GetSecretValue', 'secretsmanager:DescribeSecret'],
           resources: [localSecretArn],
         }),
       );
@@ -255,13 +238,9 @@ export class ApiConstruct extends Construct {
       };
     } else if (props.userPool && !useLambdaAuthorizer) {
       // Cognito Authorizer only (when secretArn is not provided)
-      const cognitoAuthorizer = new CognitoUserPoolsAuthorizer(
-        this,
-        'CognitoAuthorizer',
-        {
-          cognitoUserPools: [props.userPool],
-        },
-      );
+      const cognitoAuthorizer = new CognitoUserPoolsAuthorizer(this, 'CognitoAuthorizer', {
+        cognitoUserPools: [props.userPool],
+      });
 
       methodOptions = {
         authorizer: cognitoAuthorizer,
@@ -285,10 +264,7 @@ export class ApiConstruct extends Construct {
    * @param targetRegion The target region
    * @returns The secret ARN with the region replaced
    */
-  private convertSecretArnToRegion(
-    secretArn: string,
-    targetRegion: string,
-  ): string {
+  private convertSecretArnToRegion(secretArn: string, targetRegion: string): string {
     const arnComponents = Arn.split(secretArn, ArnFormat.COLON_RESOURCE_NAME);
     return Arn.format(
       {

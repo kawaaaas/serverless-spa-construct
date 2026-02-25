@@ -220,8 +220,7 @@ describe('ApiConstruct', () => {
       new ApiConstruct(stack, 'Api', {
         table,
         entry: 'src/lambda/handler.ts',
-        secretArn:
-          'arn:aws:secretsmanager:us-east-1:123456789012:secret:my-secret-abc123',
+        secretArn: 'arn:aws:secretsmanager:us-east-1:123456789012:secret:my-secret-abc123',
       });
       const template = Template.fromStack(stack);
       const policies = template.findResources('AWS::IAM::Policy');
@@ -231,10 +230,7 @@ describe('ApiConstruct', () => {
         const statements = policy.Properties?.PolicyDocument?.Statement || [];
         for (const statement of statements) {
           if (Array.isArray(statement.Action)) {
-            if (
-              statement.Action.includes('secretsmanager:GetSecretValue') &&
-              statement.Action.includes('secretsmanager:DescribeSecret')
-            ) {
+            if (statement.Action.includes('secretsmanager:GetSecretValue') && statement.Action.includes('secretsmanager:DescribeSecret')) {
               hasSecretsManagerPermission = true;
               expect(statement.Effect).toBe('Allow');
             }
@@ -253,9 +249,7 @@ describe('ApiConstruct', () => {
         const statements = policy.Properties?.PolicyDocument?.Statement || [];
         for (const statement of statements) {
           if (Array.isArray(statement.Action)) {
-            expect(statement.Action).not.toContain(
-              'secretsmanager:GetSecretValue',
-            );
+            expect(statement.Action).not.toContain('secretsmanager:GetSecretValue');
           } else {
             expect(statement.Action).not.toBe('secretsmanager:GetSecretValue');
           }
@@ -269,8 +263,7 @@ describe('ApiConstruct', () => {
       new ApiConstruct(stack, 'Api', {
         table,
         entry: 'src/lambda/handler.ts',
-        secretArn:
-          'arn:aws:secretsmanager:us-east-1:123456789012:secret:my-secret-abc123',
+        secretArn: 'arn:aws:secretsmanager:us-east-1:123456789012:secret:my-secret-abc123',
       });
       const template = Template.fromStack(stack);
       template.resourceCountIs('AWS::Lambda::Function', 2);
@@ -290,8 +283,7 @@ describe('ApiConstruct', () => {
       new ApiConstruct(stack, 'Api', {
         table,
         entry: 'src/lambda/handler.ts',
-        secretArn:
-          'arn:aws:secretsmanager:us-east-1:123456789012:secret:my-secret-abc123',
+        secretArn: 'arn:aws:secretsmanager:us-east-1:123456789012:secret:my-secret-abc123',
         enableLambdaAuthorizer: false,
       });
       const template = Template.fromStack(stack);
@@ -303,8 +295,7 @@ describe('ApiConstruct', () => {
       new ApiConstruct(stack, 'Api', {
         table,
         entry: 'src/lambda/handler.ts',
-        secretArn:
-          'arn:aws:secretsmanager:us-east-1:123456789012:secret:my-secret-abc123',
+        secretArn: 'arn:aws:secretsmanager:us-east-1:123456789012:secret:my-secret-abc123',
       });
       const template = Template.fromStack(stack);
       template.hasResourceProperties('AWS::ApiGateway::Method', {
@@ -317,8 +308,7 @@ describe('ApiConstruct', () => {
       new ApiConstruct(stack, 'Api', {
         table,
         entry: 'src/lambda/handler.ts',
-        secretArn:
-          'arn:aws:secretsmanager:us-east-1:123456789012:secret:my-secret-abc123',
+        secretArn: 'arn:aws:secretsmanager:us-east-1:123456789012:secret:my-secret-abc123',
         customHeaderName: 'x-custom-verify',
         authorizerCacheTtlSeconds: 600,
       });
@@ -337,8 +327,7 @@ describe('ApiConstruct', () => {
       const api = new ApiConstruct(stack, 'Api', {
         table,
         entry: 'src/lambda/handler.ts',
-        secretArn:
-          'arn:aws:secretsmanager:us-east-1:123456789012:secret:my-secret-abc123',
+        secretArn: 'arn:aws:secretsmanager:us-east-1:123456789012:secret:my-secret-abc123',
       });
       expect(api.authorizerFunction).toBeDefined();
     });
@@ -360,8 +349,7 @@ describe('ApiConstruct', () => {
         entry: 'src/lambda/handler.ts',
         userPool,
         userPoolClientId: 'test-client-id',
-        secretArn:
-          'arn:aws:secretsmanager:us-east-1:123456789012:secret:my-secret-abc123',
+        secretArn: 'arn:aws:secretsmanager:us-east-1:123456789012:secret:my-secret-abc123',
       });
       const template = Template.fromStack(stack);
       template.resourceCountIs('AWS::Lambda::Function', 2);
@@ -378,8 +366,7 @@ describe('ApiConstruct', () => {
         entry: 'src/lambda/handler.ts',
         userPool,
         userPoolClientId: 'test-client-id',
-        secretArn:
-          'arn:aws:secretsmanager:us-east-1:123456789012:secret:my-secret-abc123',
+        secretArn: 'arn:aws:secretsmanager:us-east-1:123456789012:secret:my-secret-abc123',
       });
       const template = Template.fromStack(stack);
       template.hasResourceProperties('AWS::ApiGateway::Method', {
@@ -395,8 +382,7 @@ describe('ApiConstruct', () => {
         entry: 'src/lambda/handler.ts',
         userPool,
         userPoolClientId: 'test-client-id',
-        secretArn:
-          'arn:aws:secretsmanager:us-east-1:123456789012:secret:my-secret-abc123',
+        secretArn: 'arn:aws:secretsmanager:us-east-1:123456789012:secret:my-secret-abc123',
       });
       expect(api.authorizerFunction).toBeDefined();
     });

@@ -3,18 +3,11 @@ import { Certificate, ICertificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { Attribute } from 'aws-cdk-lib/aws-dynamodb';
 import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { IVersion, Version } from 'aws-cdk-lib/aws-lambda';
-import {
-  AwsCustomResource,
-  AwsCustomResourcePolicy,
-  PhysicalResourceId,
-} from 'aws-cdk-lib/custom-resources';
+import { AwsCustomResource, AwsCustomResourcePolicy, PhysicalResourceId } from 'aws-cdk-lib/custom-resources';
 import { Construct } from 'constructs';
 import { ApiConstruct } from './api-construct';
 import { AuthConstruct, AuthConstructProps } from './auth-construct';
-import {
-  DatabaseConstruct,
-  DatabaseConstructProps,
-} from './database-construct';
+import { DatabaseConstruct, DatabaseConstructProps } from './database-construct';
 import { FrontendConstruct } from './frontend-construct';
 
 // ============================================================================
@@ -399,11 +392,7 @@ export class ServerlessSpaConstruct extends Construct {
    * Creates a minimal ServerlessSpaConstruct with CloudFront default domain.
    * Best for: Development, testing, or when custom domain is not needed.
    */
-  public static minimal(
-    scope: Construct,
-    id: string,
-    props: MinimalProps,
-  ): ServerlessSpaConstruct {
+  public static minimal(scope: Construct, id: string, props: MinimalProps): ServerlessSpaConstruct {
     return new ServerlessSpaConstruct(scope, id, {
       ...props.advanced,
       database: {
@@ -424,11 +413,7 @@ export class ServerlessSpaConstruct extends Construct {
    * Requires: ServerlessSpaSecurityConstruct with certificate deployed in us-east-1 first.
    * Best for: Production deployments with your own domain.
    */
-  public static withCustomDomain(
-    scope: Construct,
-    id: string,
-    props: WithCustomDomainProps,
-  ): ServerlessSpaConstruct {
+  public static withCustomDomain(scope: Construct, id: string, props: WithCustomDomainProps): ServerlessSpaConstruct {
     return new ServerlessSpaConstruct(scope, id, {
       ...props.advanced,
       database: {
@@ -461,11 +446,7 @@ export class ServerlessSpaConstruct extends Construct {
    * Requires: ServerlessSpaSecurityConstruct deployed in us-east-1 first.
    * Best for: Production deployments requiring WAF protection.
    */
-  public static withWaf(
-    scope: Construct,
-    id: string,
-    props: WithWafProps,
-  ): ServerlessSpaConstruct {
+  public static withWaf(scope: Construct, id: string, props: WithWafProps): ServerlessSpaConstruct {
     return new ServerlessSpaConstruct(scope, id, {
       ...props.advanced,
       database: {
@@ -490,11 +471,7 @@ export class ServerlessSpaConstruct extends Construct {
    * Requires: ServerlessSpaSecurityConstruct deployed in us-east-1 first.
    * Best for: Production deployments with custom domain and WAF.
    */
-  public static withCustomDomainAndWaf(
-    scope: Construct,
-    id: string,
-    props: WithCustomDomainAndWafProps,
-  ): ServerlessSpaConstruct {
+  public static withCustomDomainAndWaf(scope: Construct, id: string, props: WithCustomDomainAndWafProps): ServerlessSpaConstruct {
     return new ServerlessSpaConstruct(scope, id, {
       ...props.advanced,
       database: {
@@ -624,11 +601,7 @@ export class ServerlessSpaConstruct extends Construct {
    * @see ServerlessSpaConstruct.withCustomDomainAndWaf
    */
   // eslint-disable-next-line cdk/construct-props-struct-name
-  protected constructor(
-    scope: Construct,
-    id: string,
-    props?: ServerlessSpaProps,
-  ) {
+  protected constructor(scope: Construct, id: string, props?: ServerlessSpaProps) {
     super(scope, id);
 
     // Apply tags to all child resources
@@ -649,10 +622,7 @@ export class ServerlessSpaConstruct extends Construct {
       const ssmParameterArnPattern = `arn:aws:ssm:${securityRegion}:${Stack.of(this).account}:parameter${ssmPrefix}*`;
 
       // Create individual AwsCustomResource for each SSM parameter
-      const createSsmReader = (
-        readerId: string,
-        paramName: string,
-      ): AwsCustomResource => {
+      const createSsmReader = (readerId: string, paramName: string): AwsCustomResource => {
         const call = {
           service: 'SSM',
           action: 'getParameter',
@@ -660,9 +630,7 @@ export class ServerlessSpaConstruct extends Construct {
             Name: `${ssmPrefix}${paramName}`,
           },
           region: securityRegion,
-          physicalResourceId: PhysicalResourceId.of(
-            `${id}-ssm-${paramName}-${Date.now()}`,
-          ),
+          physicalResourceId: PhysicalResourceId.of(`${id}-ssm-${paramName}-${Date.now()}`),
         };
         return new AwsCustomResource(this, readerId, {
           onCreate: call,
@@ -679,38 +647,23 @@ export class ServerlessSpaConstruct extends Construct {
       // Create WAF/secret/edge SSM readers only when not in certificateOnly mode
       if (!props.security._certificateOnly) {
         const wafAclReader = createSsmReader('SsmWafAclArn', 'waf-acl-arn');
-        const headerNameReader = createSsmReader(
-          'SsmCustomHeaderName',
-          'custom-header-name',
-        );
+        const headerNameReader = createSsmReader('SsmCustomHeaderName', 'custom-header-name');
         const secretArnReader = createSsmReader('SsmSecretArn', 'secret-arn');
-        const edgeFnReader = createSsmReader(
-          'SsmEdgeFunctionVersionArn',
-          'edge-function-version-arn',
-        );
+        const edgeFnReader = createSsmReader('SsmEdgeFunctionVersionArn', 'edge-function-version-arn');
 
         this.ssmParameterReader = wafAclReader;
 
         this.webAclArn = wafAclReader.getResponseField('Parameter.Value');
-        this.securityCustomHeaderName =
-          headerNameReader.getResponseField('Parameter.Value');
+        this.securityCustomHeaderName = headerNameReader.getResponseField('Parameter.Value');
         this.secretArn = secretArnReader.getResponseField('Parameter.Value');
-        this.edgeFunctionVersionArn =
-          edgeFnReader.getResponseField('Parameter.Value');
+        this.edgeFunctionVersionArn = edgeFnReader.getResponseField('Parameter.Value');
       }
 
       // Read certificate ARN from SSM when frontend has a custom domain
       if (props?.frontend?.domainName) {
-        const certArnReader = createSsmReader(
-          'SsmCertificateArn',
-          'certificate-arn',
-        );
+        const certArnReader = createSsmReader('SsmCertificateArn', 'certificate-arn');
         this.certificateArn = certArnReader.getResponseField('Parameter.Value');
-        this.certificate = Certificate.fromCertificateArn(
-          this,
-          'SsmCertificate',
-          this.certificateArn,
-        );
+        this.certificate = Certificate.fromCertificateArn(this, 'SsmCertificate', this.certificateArn);
       }
     }
 
@@ -732,8 +685,7 @@ export class ServerlessSpaConstruct extends Construct {
       userPool: this.auth.userPool,
       userPoolClientId: this.auth.userPoolClientId,
       customHeaderName: props?.api?.customHeaderName,
-      secretArn:
-        props?.api?.secretArn ?? (props?.security ? this.secretArn : undefined),
+      secretArn: props?.api?.secretArn ?? (props?.security ? this.secretArn : undefined),
       enableLambdaAuthorizer: props?.api?.enableLambdaAuthorizer,
       authorizerCacheTtlSeconds: props?.api?.authorizerCacheTtlSeconds,
     });
@@ -754,12 +706,8 @@ export class ServerlessSpaConstruct extends Construct {
       ...(props?.security && { webAclArn: this.webAclArn }),
       ...(props?.security &&
         this.edgeFunctionVersionArn && {
-        edgeFunctionVersion: Version.fromVersionArn(
-          this,
-          'EdgeFunctionVersion',
-          this.edgeFunctionVersionArn,
-        ),
-      }),
+          edgeFunctionVersion: Version.fromVersionArn(this, 'EdgeFunctionVersion', this.edgeFunctionVersionArn),
+        }),
       ...(this.certificate && { certificate: this.certificate }),
     });
 

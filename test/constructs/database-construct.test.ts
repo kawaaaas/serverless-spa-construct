@@ -18,9 +18,7 @@ describe('DatabaseConstruct', () => {
       const template = Template.fromStack(stack);
       template.hasResourceProperties('AWS::DynamoDB::Table', {
         KeySchema: Match.arrayWith([{ AttributeName: 'PK', KeyType: 'HASH' }]),
-        AttributeDefinitions: Match.arrayWith([
-          { AttributeName: 'PK', AttributeType: 'S' },
-        ]),
+        AttributeDefinitions: Match.arrayWith([{ AttributeName: 'PK', AttributeType: 'S' }]),
       });
     });
 
@@ -29,9 +27,7 @@ describe('DatabaseConstruct', () => {
       const template = Template.fromStack(stack);
       template.hasResourceProperties('AWS::DynamoDB::Table', {
         KeySchema: Match.arrayWith([{ AttributeName: 'SK', KeyType: 'RANGE' }]),
-        AttributeDefinitions: Match.arrayWith([
-          { AttributeName: 'SK', AttributeType: 'S' },
-        ]),
+        AttributeDefinitions: Match.arrayWith([{ AttributeName: 'SK', AttributeType: 'S' }]),
       });
     });
 
@@ -60,12 +56,8 @@ describe('DatabaseConstruct', () => {
       });
       const template = Template.fromStack(stack);
       template.hasResourceProperties('AWS::DynamoDB::Table', {
-        KeySchema: Match.arrayWith([
-          { AttributeName: 'userId', KeyType: 'HASH' },
-        ]),
-        AttributeDefinitions: Match.arrayWith([
-          { AttributeName: 'userId', AttributeType: 'S' },
-        ]),
+        KeySchema: Match.arrayWith([{ AttributeName: 'userId', KeyType: 'HASH' }]),
+        AttributeDefinitions: Match.arrayWith([{ AttributeName: 'userId', AttributeType: 'S' }]),
       });
     });
 
@@ -75,12 +67,8 @@ describe('DatabaseConstruct', () => {
       });
       const template = Template.fromStack(stack);
       template.hasResourceProperties('AWS::DynamoDB::Table', {
-        KeySchema: Match.arrayWith([
-          { AttributeName: 'timestamp', KeyType: 'RANGE' },
-        ]),
-        AttributeDefinitions: Match.arrayWith([
-          { AttributeName: 'timestamp', AttributeType: 'N' },
-        ]),
+        KeySchema: Match.arrayWith([{ AttributeName: 'timestamp', KeyType: 'RANGE' }]),
+        AttributeDefinitions: Match.arrayWith([{ AttributeName: 'timestamp', AttributeType: 'N' }]),
       });
     });
 
