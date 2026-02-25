@@ -9,6 +9,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
   projenrcTs: true,
   repositoryUrl: 'https://github.com/kawaaaas/serverless-spa-construct.git',
   stability: 'experimental',
+  majorVersion: 0,
 
   description: 'A high-level AWS CDK construct for building serverless SPAs with DynamoDB, Cognito, API Gateway, S3, CloudFront, WAF, and more.',
 
@@ -60,6 +61,10 @@ const project = new awscdk.AwsCdkConstructLibrary({
     '/.gitattributes',
     '/.projenrc.ts',
     '/projenrc',
+    '/.claude/',
+    '/.husky/',
+    '/scripts/',
+    '/tsconfig.lambda.json',
   ],
 });
 

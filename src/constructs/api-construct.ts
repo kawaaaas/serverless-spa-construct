@@ -1,4 +1,3 @@
-import * as path from 'path';
 import { Arn, ArnFormat, Duration, Stack } from 'aws-cdk-lib';
 import {
   AuthorizationType,
@@ -16,6 +15,7 @@ import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { IFunction, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Construct } from 'constructs';
+import { resolveEntry } from './resolve-entry';
 
 /**
  * Properties for ApiConstruct.
@@ -200,7 +200,7 @@ export class ApiConstruct extends Construct {
         runtime: Runtime.NODEJS_20_X,
         memorySize: 128,
         timeout: Duration.seconds(10),
-        entry: path.join(__dirname, '../lambda/custom-header-authorizer.ts'),
+        entry: resolveEntry(__dirname, '../lambda/custom-header-authorizer'),
         handler: 'handler',
         environment: authorizerEnv,
       });
