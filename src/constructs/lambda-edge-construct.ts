@@ -1,9 +1,9 @@
-import * as path from 'path';
 import { Arn, ArnFormat, Duration, RemovalPolicy, Stack, Token } from 'aws-cdk-lib';
 import { PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction, OutputFormat } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Construct } from 'constructs';
+import { resolveEntry } from './resolve-entry';
 
 /**
  * Default custom header name for API Gateway access restriction.
@@ -100,7 +100,7 @@ export class LambdaEdgeConstruct extends Construct {
     // since Lambda@Edge does not support environment variables
     this.edgeFunction = new NodejsFunction(this, 'EdgeFunction', {
       runtime: lambda.Runtime.NODEJS_20_X,
-      entry: path.join(__dirname, '../lambda/edge-origin-request.ts'),
+      entry: resolveEntry(__dirname, '../lambda/edge-origin-request'),
       handler: 'handler',
       timeout: Duration.seconds(5), // Lambda@Edge has max 5 seconds for origin request
       memorySize: 128,

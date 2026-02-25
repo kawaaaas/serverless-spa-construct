@@ -1,10 +1,10 @@
-import * as path from 'path';
 import { Duration, RemovalPolicy } from 'aws-cdk-lib';
 import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { IFunction, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { ISecret, RotationSchedule, Secret } from 'aws-cdk-lib/aws-secretsmanager';
 import { Construct } from 'constructs';
+import { resolveEntry } from './resolve-entry';
 
 /**
  * Default custom header name for API Gateway access restriction.
@@ -179,7 +179,7 @@ export class SecretConstruct extends Construct {
     // Create rotation Lambda function
     this.rotationFunction = new NodejsFunction(this, 'RotationFunction', {
       runtime: Runtime.NODEJS_20_X,
-      entry: path.join(__dirname, '../lambda/rotation-handler.ts'),
+      entry: resolveEntry(__dirname, '../lambda/rotation-handler'),
       handler: 'handler',
       timeout: Duration.seconds(30),
       environment: {

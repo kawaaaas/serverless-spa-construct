@@ -1,0 +1,47 @@
+name-template: v$RESOLVED_VERSION
+tag-template: v$RESOLVED_VERSION
+categories:
+  - title: 🚀 Features
+    labels:
+      - enhancement
+      - feat
+  - title: 🐛 Bug Fixes
+    labels:
+      - bug
+      - fix
+  - title: 🧰 Maintenance
+    labels:
+      - chore
+      - dependencies
+      - ci
+  - title: 📖 Documentation
+    labels:
+      - documentation
+change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
+change-title-escapes: '\<*_&'
+version-resolver:
+  major:
+    labels:
+      - major
+      - breaking
+  minor:
+    labels:
+      - minor
+      - enhancement
+      - feat
+  patch:
+    labels:
+      - patch
+      - bug
+      - fix
+      - chore
+      - dependencies
+  default: patch
+template: |
+  ## Changes
+
+  $CHANGES
+
+  ## Contributors
+
+  $CONTRIBUTORS
