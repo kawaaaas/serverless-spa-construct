@@ -1,0 +1,64 @@
+name: Feature Request
+description: Suggest a new feature or improvement
+labels: ['enhancement']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a feature!
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Which area does this feature relate to?
+      multiple: true
+      options:
+        - ServerlessSpaConstruct (high-level)
+        - ServerlessSpaSecurityConstruct (high-level)
+        - Database / DynamoDB
+        - Auth / Cognito
+        - API Gateway / Lambda
+        - Frontend / CloudFront / S3
+        - WAF
+        - Certificate / ACM
+        - Secret / Secrets Manager
+        - Lambda@Edge
+        - SSM Parameter Store
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What problem does this feature solve? What use case is not currently supported?
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: How do you think this should work? Include example API or code snippets if possible.
+      placeholder: |
+        ```ts
+        // Example of desired API
+        ServerlessSpaConstruct.minimal(this, "App", {
+          // ...
+        });
+        ```
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Are there other approaches you've considered or workarounds you're currently using?
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Any additional context, references, or screenshots.
