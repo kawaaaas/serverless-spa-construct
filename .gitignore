@@ -70,5 +70,4 @@ tsconfig.json
 !/.github/workflows/dependency-review.yml
 !/.github/workflows/release-drafter.yml
 !/.github/workflows/labeler.yml
-!/scripts/
 !/.projenrc.ts

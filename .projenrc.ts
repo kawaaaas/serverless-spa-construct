@@ -63,7 +63,6 @@ const project = new awscdk.AwsCdkConstructLibrary({
     '/projenrc',
     '/.claude/',
     '/.husky/',
-    '/scripts/',
     '/tsconfig.lambda.json',
   ],
 });
@@ -105,6 +104,9 @@ project.package.addField('lint-staged', {
   '*.{json,md,yml,yaml}': ['prettier --write'],
 });
 
+// Exclude projen-managed files from prettier to avoid EACCES errors in lint-staged
+project.prettier?.ignoreFile?.addPatterns('/.eslintrc.json', '/.prettierrc.json', '/API.md', '/.github/pull_request_template.md');
+
 // Husky: pre-commit hook
 // ESLINT_USE_FLAT_CONFIG=false is required because this project uses .eslintrc.json (legacy config) with ESLint 9
 new TextFile(project, '.husky/pre-commit', {
@@ -134,7 +136,6 @@ project.gitignore.include(
   '/.github/workflows/dependency-review.yml',
   '/.github/workflows/release-drafter.yml',
   '/.github/workflows/labeler.yml',
-  '/scripts/',
 );
 
 // Add post-compile task to compile lambda functions

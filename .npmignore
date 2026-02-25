@@ -4,7 +4,6 @@
 !/lambda/**/*.d.ts
 /.claude/
 /.husky/
-/scripts/
 /tsconfig.lambda.json
 /.projen/
 /test-reports/
