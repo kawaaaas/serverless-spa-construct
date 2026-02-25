@@ -52,6 +52,7 @@ junit.xml
 tsconfig.json
 !/API.md
 !/.husky/pre-commit
+!/.husky/pre-push
 /lambda
 !/CODE_OF_CONDUCT.md
 !/SECURITY.md

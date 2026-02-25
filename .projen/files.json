@@ -9,6 +9,7 @@
     ".github/workflows/upgrade-main.yml",
     ".gitignore",
     ".husky/pre-commit",
+    ".husky/pre-push",
     ".mergify.yml",
     ".prettierignore",
     ".prettierrc.json",
