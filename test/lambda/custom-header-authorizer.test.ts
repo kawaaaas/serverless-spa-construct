@@ -1,4 +1,4 @@
-import * as fc from 'fast-check';
+import * as fc from "fast-check";
 import {
   clearCache,
   createCacheEntry,
@@ -6,50 +6,50 @@ import {
   generatePolicy,
   isCacheValid,
   validateHeaderValue,
-} from '../../src/lambda/custom-header-authorizer';
+} from "../../src/lambda/custom-header-authorizer";
 
 /**
  * Arbitrary for generating valid header names.
  * Header names should be alphanumeric with hyphens, starting with x-.
  */
 const headerNameArb: fc.Arbitrary<string> = fc
-  .array(fc.constantFrom(...'abcdefghijklmnopqrstuvwxyz0123456789-'.split('')), {
+  .array(fc.constantFrom(..."abcdefghijklmnopqrstuvwxyz0123456789-".split("")), {
     minLength: 1,
     maxLength: 20,
   })
-  .map((chars: string[]) => `x-${chars.join('')}`);
+  .map((chars: string[]) => `x-${chars.join("")}`);
 
 /**
  * Arbitrary for generating valid header values (secret values).
  * Header values should be non-empty strings without control characters.
  */
 const headerValueArb: fc.Arbitrary<string> = fc
-  .array(fc.constantFrom(...'abcdefghijklmnopqrstuvwxyz0123456789-_'.split('')), {
+  .array(fc.constantFrom(..."abcdefghijklmnopqrstuvwxyz0123456789-_".split("")), {
     minLength: 1,
     maxLength: 64,
   })
-  .map((chars: string[]) => chars.join(''));
+  .map((chars: string[]) => chars.join(""));
 
 /**
  * Arbitrary for generating method ARNs.
  */
 const methodArnArb: fc.Arbitrary<string> = fc
   .tuple(
-    fc.constantFrom('us-east-1', 'ap-northeast-1', 'eu-west-1'),
+    fc.constantFrom("us-east-1", "ap-northeast-1", "eu-west-1"),
     fc.stringMatching(/^[0-9]{12}$/),
     fc.stringMatching(/^[a-z0-9]{10}$/),
-    fc.constantFrom('prod', 'dev', 'staging'),
-    fc.constantFrom('GET', 'POST', 'PUT', 'DELETE'),
+    fc.constantFrom("prod", "dev", "staging"),
+    fc.constantFrom("GET", "POST", "PUT", "DELETE"),
     fc.stringMatching(/^\/[a-z]+$/),
   )
   .map(([region, accountId, apiId, stage, method, path]) => `arn:aws:execute-api:${region}:${accountId}:${apiId}/${stage}/${method}${path}`);
 
-describe('Lambda Authorizer Handler', () => {
+describe("Lambda Authorizer Handler", () => {
   beforeEach(() => {
     clearCache();
   });
 
-  describe('Property 2: Lambda Authorizer Authorization Decision', () => {
+  describe("Property 2: Lambda Authorizer Authorization Decision", () => {
     /**
      * **Property 2: Lambda Authorizer認可判定**
      *
@@ -67,7 +67,7 @@ describe('Lambda Authorizer Handler', () => {
      *
      * **Validates: Requirements 3.4**
      */
-    test('validateHeaderValue returns true when actual value matches expected value', () => {
+    test("validateHeaderValue returns true when actual value matches expected value", () => {
       fc.assert(
         fc.property(headerValueArb, (secretValue: string) => {
           // Act & Assert
@@ -82,7 +82,7 @@ describe('Lambda Authorizer Handler', () => {
      *
      * **Validates: Requirements 3.6**
      */
-    test('validateHeaderValue returns false when actual value does not match expected value', () => {
+    test("validateHeaderValue returns false when actual value does not match expected value", () => {
       fc.assert(
         fc.property(
           headerValueArb,
@@ -104,7 +104,7 @@ describe('Lambda Authorizer Handler', () => {
      *
      * **Validates: Requirements 3.5**
      */
-    test('validateHeaderValue returns false when actual value is undefined', () => {
+    test("validateHeaderValue returns false when actual value is undefined", () => {
       fc.assert(
         fc.property(headerValueArb, (expectedValue: string) => {
           // Act & Assert
@@ -119,7 +119,7 @@ describe('Lambda Authorizer Handler', () => {
      *
      * **Validates: Requirements 3.4**
      */
-    test('extractHeaderValue returns value when header exists (case-insensitive)', () => {
+    test("extractHeaderValue returns value when header exists (case-insensitive)", () => {
       fc.assert(
         fc.property(headerNameArb, headerValueArb, (headerName: string, headerValue: string) => {
           // Arrange - test with various casings
@@ -140,7 +140,7 @@ describe('Lambda Authorizer Handler', () => {
      *
      * **Validates: Requirements 3.5**
      */
-    test('extractHeaderValue returns undefined when header does not exist', () => {
+    test("extractHeaderValue returns undefined when header does not exist", () => {
       fc.assert(
         fc.property(headerNameArb, headerNameArb, headerValueArb, (searchName, existingName, existingValue) => {
           // Only test when names are different
@@ -164,7 +164,7 @@ describe('Lambda Authorizer Handler', () => {
      *
      * **Validates: Requirements 3.5**
      */
-    test('extractHeaderValue returns undefined when headers is null or undefined', () => {
+    test("extractHeaderValue returns undefined when headers is null or undefined", () => {
       fc.assert(
         fc.property(headerNameArb, (headerName: string) => {
           // Act & Assert
@@ -180,23 +180,23 @@ describe('Lambda Authorizer Handler', () => {
      *
      * **Validates: Requirements 3.4**
      */
-    test('generatePolicy creates Allow policy with correct structure', () => {
+    test("generatePolicy creates Allow policy with correct structure", () => {
       fc.assert(
         fc.property(methodArnArb, (methodArn: string) => {
           // Act
-          const result = generatePolicy('cloudfront', 'Allow', methodArn);
+          const result = generatePolicy("cloudfront", "Allow", methodArn);
 
           // Assert
-          expect(result.principalId).toBe('cloudfront');
-          expect(result.policyDocument.Version).toBe('2012-10-17');
+          expect(result.principalId).toBe("cloudfront");
+          expect(result.policyDocument.Version).toBe("2012-10-17");
           expect(result.policyDocument.Statement).toHaveLength(1);
           const statement = result.policyDocument.Statement[0] as {
             Action: string;
             Effect: string;
             Resource: string;
           };
-          expect(statement.Effect).toBe('Allow');
-          expect(statement.Action).toBe('execute-api:Invoke');
+          expect(statement.Effect).toBe("Allow");
+          expect(statement.Action).toBe("execute-api:Invoke");
           expect(statement.Resource).toBe(methodArn);
         }),
         { numRuns: 100 },
@@ -208,23 +208,23 @@ describe('Lambda Authorizer Handler', () => {
      *
      * **Validates: Requirements 3.5, 3.6**
      */
-    test('generatePolicy creates Deny policy with correct structure', () => {
+    test("generatePolicy creates Deny policy with correct structure", () => {
       fc.assert(
         fc.property(methodArnArb, (methodArn: string) => {
           // Act
-          const result = generatePolicy('unauthorized', 'Deny', methodArn);
+          const result = generatePolicy("unauthorized", "Deny", methodArn);
 
           // Assert
-          expect(result.principalId).toBe('unauthorized');
-          expect(result.policyDocument.Version).toBe('2012-10-17');
+          expect(result.principalId).toBe("unauthorized");
+          expect(result.policyDocument.Version).toBe("2012-10-17");
           expect(result.policyDocument.Statement).toHaveLength(1);
           const statement = result.policyDocument.Statement[0] as {
             Action: string;
             Effect: string;
             Resource: string;
           };
-          expect(statement.Effect).toBe('Deny');
-          expect(statement.Action).toBe('execute-api:Invoke');
+          expect(statement.Effect).toBe("Deny");
+          expect(statement.Action).toBe("execute-api:Invoke");
           expect(statement.Resource).toBe(methodArn);
         }),
         { numRuns: 100 },
@@ -236,29 +236,29 @@ describe('Lambda Authorizer Handler', () => {
      *
      * **Validates: Requirements 3.4**
      */
-    test('extractHeaderValue is case-insensitive for header names', () => {
+    test("extractHeaderValue is case-insensitive for header names", () => {
       fc.assert(
         fc.property(headerValueArb, (headerValue: string) => {
           // Arrange - use mixed case header name
-          const headers = { 'X-Origin-Verify': headerValue };
+          const headers = { "X-Origin-Verify": headerValue };
 
           // Act & Assert - should find with any casing
-          expect(extractHeaderValue(headers, 'x-origin-verify')).toBe(headerValue);
-          expect(extractHeaderValue(headers, 'X-ORIGIN-VERIFY')).toBe(headerValue);
-          expect(extractHeaderValue(headers, 'X-Origin-Verify')).toBe(headerValue);
+          expect(extractHeaderValue(headers, "x-origin-verify")).toBe(headerValue);
+          expect(extractHeaderValue(headers, "X-ORIGIN-VERIFY")).toBe(headerValue);
+          expect(extractHeaderValue(headers, "X-Origin-Verify")).toBe(headerValue);
         }),
         { numRuns: 100 },
       );
     });
   });
 
-  describe('Cache Behavior for Lambda Authorizer', () => {
+  describe("Cache Behavior for Lambda Authorizer", () => {
     /**
      * Property: Cache is valid when current time is before expiration.
      *
      * **Validates: Requirements 3.7, 7.2**
      */
-    test('isCacheValid returns true when current time is before expiration', () => {
+    test("isCacheValid returns true when current time is before expiration", () => {
       fc.assert(
         fc.property(
           headerValueArb,
@@ -286,7 +286,7 @@ describe('Lambda Authorizer Handler', () => {
      *
      * **Validates: Requirements 3.7, 7.2**
      */
-    test('isCacheValid returns false when current time is at or after expiration', () => {
+    test("isCacheValid returns false when current time is at or after expiration", () => {
       fc.assert(
         fc.property(
           headerValueArb,
@@ -312,7 +312,7 @@ describe('Lambda Authorizer Handler', () => {
      *
      * **Validates: Requirements 3.7**
      */
-    test('isCacheValid returns false when cache is null', () => {
+    test("isCacheValid returns false when cache is null", () => {
       fc.assert(
         fc.property(fc.integer({ min: 0, max: 1000000000000 }), (currentTime: number) => {
           // Act & Assert
@@ -327,7 +327,7 @@ describe('Lambda Authorizer Handler', () => {
      *
      * **Validates: Requirements 7.2**
      */
-    test('createCacheEntry sets correct expiration time', () => {
+    test("createCacheEntry sets correct expiration time", () => {
       fc.assert(
         fc.property(
           headerValueArb,

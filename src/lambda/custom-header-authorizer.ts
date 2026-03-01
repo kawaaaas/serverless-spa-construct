@@ -1,6 +1,6 @@
-import { GetSecretValueCommand, SecretsManagerClient } from '@aws-sdk/client-secrets-manager';
-import { CognitoJwtVerifier } from 'aws-jwt-verify';
-import { APIGatewayAuthorizerResult, APIGatewayRequestAuthorizerEvent, APIGatewayRequestAuthorizerHandler } from 'aws-lambda';
+import { GetSecretValueCommand, SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
+import { CognitoJwtVerifier } from "aws-jwt-verify";
+import { APIGatewayAuthorizerResult, APIGatewayRequestAuthorizerEvent, APIGatewayRequestAuthorizerHandler } from "aws-lambda";
 
 /**
  * Secret cache structure for storing secret values with TTL.
@@ -47,7 +47,7 @@ const secretsManager = new SecretsManagerClient({});
 function getSecretArn(): string {
   const secretArn = process.env.SECRET_ARN;
   if (!secretArn) {
-    throw new Error('SECRET_ARN environment variable is not set');
+    throw new Error("SECRET_ARN environment variable is not set");
   }
   return secretArn;
 }
@@ -56,7 +56,7 @@ function getSecretArn(): string {
  * Gets the custom header name from environment variables.
  */
 function getCustomHeaderName(): string {
-  return process.env.CUSTOM_HEADER_NAME || 'x-origin-verify';
+  return process.env.CUSTOM_HEADER_NAME || "x-origin-verify";
 }
 
 /**
@@ -112,13 +112,13 @@ async function fetchSecretValue(secretArn: string): Promise<SecretValue> {
   );
 
   if (!response.SecretString) {
-    throw new Error('Secret value is empty');
+    throw new Error("Secret value is empty");
   }
 
   const secretValue = JSON.parse(response.SecretString) as SecretValue;
 
   if (!secretValue.headerValue) {
-    throw new Error('Secret does not contain headerValue');
+    throw new Error("Secret does not contain headerValue");
   }
 
   return secretValue;
@@ -133,18 +133,18 @@ async function getSecretValue(): Promise<string> {
 
   // Check if cache is valid
   if (isCacheValid(secretCache, currentTime)) {
-    console.log('Using cached secret value');
+    console.log("Using cached secret value");
     return secretCache!.value;
   }
 
   // Fetch new secret value
-  console.log('Fetching secret value from Secrets Manager');
+  console.log("Fetching secret value from Secrets Manager");
   const secretArn = getSecretArn();
   const secretValue = await fetchSecretValue(secretArn);
 
   // Update cache
   secretCache = createCacheEntry(secretValue.headerValue, cacheTtl, currentTime);
-  console.log('Secret value cached');
+  console.log("Secret value cached");
 
   return secretValue.headerValue;
 }
@@ -152,14 +152,14 @@ async function getSecretValue(): Promise<string> {
 /**
  * Generates an IAM policy document for API Gateway authorization.
  */
-export function generatePolicy(principalId: string, effect: 'Allow' | 'Deny', resource: string): APIGatewayAuthorizerResult {
+export function generatePolicy(principalId: string, effect: "Allow" | "Deny", resource: string): APIGatewayAuthorizerResult {
   return {
     principalId,
     policyDocument: {
-      Version: '2012-10-17',
+      Version: "2012-10-17",
       Statement: [
         {
-          Action: 'execute-api:Invoke',
+          Action: "execute-api:Invoke",
           Effect: effect,
           Resource: resource,
         },
@@ -210,9 +210,9 @@ export function extractJwtToken(headers: { [key: string]: string | undefined } |
 
   // Look for Authorization header (case-insensitive)
   for (const [key, value] of Object.entries(headers)) {
-    if (key.toLowerCase() === 'authorization' && value) {
+    if (key.toLowerCase() === "authorization" && value) {
       // Remove "Bearer " prefix if present
-      const bearerPrefix = 'Bearer ';
+      const bearerPrefix = "Bearer ";
       if (value.startsWith(bearerPrefix)) {
         return value.substring(bearerPrefix.length);
       }
@@ -232,12 +232,12 @@ function getJwtVerifier(): ReturnType<typeof CognitoJwtVerifier.create> {
     const clientId = getClientId();
 
     if (!userPoolId || !clientId) {
-      throw new Error('USER_POOL_ID and CLIENT_ID must be set for JWT validation');
+      throw new Error("USER_POOL_ID and CLIENT_ID must be set for JWT validation");
     }
 
     jwtVerifier = CognitoJwtVerifier.create({
       userPoolId,
-      tokenUse: 'id',
+      tokenUse: "id",
       clientId,
     });
   }
@@ -253,10 +253,10 @@ export async function validateJwtToken(token: string): Promise<unknown | null> {
   try {
     const verifier = getJwtVerifier();
     const payload = await verifier.verify(token);
-    console.log('JWT token validated successfully');
+    console.log("JWT token validated successfully");
     return payload;
   } catch (error) {
-    console.error('JWT validation failed:', error);
+    console.error("JWT validation failed:", error);
     return null;
   }
 }
@@ -286,19 +286,19 @@ export const handler: APIGatewayRequestAuthorizerHandler = async (event: APIGate
   console.log(`Authorizing request for ${methodArn}`);
 
   try {
-    let principalId = 'user';
+    let principalId = "user";
 
     // 1. Custom header validation (if SECRET_ARN is configured)
     const secretArn = process.env.SECRET_ARN;
     if (secretArn) {
-      console.log('Validating custom header');
+      console.log("Validating custom header");
 
       // Extract custom header value from request
       const headerValue = extractHeaderValue(event.headers, customHeaderName);
 
       if (!headerValue) {
         console.log(`Custom header ${customHeaderName} not found in request`);
-        return generatePolicy('unauthorized', 'Deny', methodArn);
+        return generatePolicy("unauthorized", "Deny", methodArn);
       }
 
       // Get expected secret value (from cache or Secrets Manager)
@@ -307,46 +307,46 @@ export const handler: APIGatewayRequestAuthorizerHandler = async (event: APIGate
       // Validate header value
       if (!validateHeaderValue(headerValue, expectedValue)) {
         console.log(`Custom header ${customHeaderName} value is invalid`);
-        return generatePolicy('unauthorized', 'Deny', methodArn);
+        return generatePolicy("unauthorized", "Deny", methodArn);
       }
 
-      console.log('Custom header validated successfully');
-      principalId = 'cloudfront';
+      console.log("Custom header validated successfully");
+      principalId = "cloudfront";
     }
 
     // 2. JWT validation (if USER_POOL_ID and CLIENT_ID are configured)
     if (userPoolId && clientId) {
-      console.log('Validating JWT token');
+      console.log("Validating JWT token");
 
       // Extract JWT token from Authorization header
       const jwtToken = extractJwtToken(event.headers);
 
       if (!jwtToken) {
-        console.log('JWT token not found in Authorization header');
-        return generatePolicy('unauthorized', 'Deny', methodArn);
+        console.log("JWT token not found in Authorization header");
+        return generatePolicy("unauthorized", "Deny", methodArn);
       }
 
       // Validate JWT token
       const payload = await validateJwtToken(jwtToken);
 
       if (!payload) {
-        console.log('JWT token validation failed');
-        return generatePolicy('unauthorized', 'Deny', methodArn);
+        console.log("JWT token validation failed");
+        return generatePolicy("unauthorized", "Deny", methodArn);
       }
 
-      console.log('JWT token validated successfully');
+      console.log("JWT token validated successfully");
       // Use sub (subject) from JWT as principal ID if available
-      if (typeof payload === 'object' && payload !== null && 'sub' in payload) {
+      if (typeof payload === "object" && payload !== null && "sub" in payload) {
         principalId = String(payload.sub);
       }
     }
 
-    console.log('Request authorized successfully');
-    return generatePolicy(principalId, 'Allow', methodArn);
+    console.log("Request authorized successfully");
+    return generatePolicy(principalId, "Allow", methodArn);
   } catch (error) {
     // Log error and deny access
-    console.error('Authorization failed:', error);
-    return generatePolicy('error', 'Deny', methodArn);
+    console.error("Authorization failed:", error);
+    return generatePolicy("error", "Deny", methodArn);
   }
 };
 

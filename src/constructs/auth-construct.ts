@@ -1,5 +1,5 @@
-import { IUserPool, IUserPoolClient, UserPool, UserPoolClient } from 'aws-cdk-lib/aws-cognito';
-import { Construct } from 'constructs';
+import { IUserPool, IUserPoolClient, UserPool, UserPoolClient } from "aws-cdk-lib/aws-cognito";
+import { Construct } from "constructs";
 
 /**
  * Properties for AuthConstruct.
@@ -43,7 +43,7 @@ export class AuthConstruct extends Construct {
     void props;
 
     // Create User Pool with defaults
-    const userPool = new UserPool(this, 'UserPool', {
+    const userPool = new UserPool(this, "UserPool", {
       selfSignUpEnabled: true,
       signInAliases: {
         email: true,
@@ -61,7 +61,7 @@ export class AuthConstruct extends Construct {
     });
 
     // Create User Pool Client with defaults
-    const userPoolClient = new UserPoolClient(this, 'UserPoolClient', {
+    const userPoolClient = new UserPoolClient(this, "UserPoolClient", {
       userPool,
       generateSecret: false,
       authFlows: {

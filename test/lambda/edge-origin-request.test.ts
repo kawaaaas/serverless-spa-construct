@@ -1,24 +1,24 @@
-import { CloudFrontRequestEvent } from 'aws-lambda';
-import * as fc from 'fast-check';
-import { addCustomHeader, clearCache, createCacheEntry, isCacheValid } from '../../src/lambda/edge-origin-request';
+import { CloudFrontRequestEvent } from "aws-lambda";
+import * as fc from "fast-check";
+import { addCustomHeader, clearCache, createCacheEntry, isCacheValid } from "../../src/lambda/edge-origin-request";
 
 /**
  * Creates a mock CloudFront request for testing.
  */
-function createMockRequest(): CloudFrontRequestEvent['Records'][0]['cf']['request'] {
+function createMockRequest(): CloudFrontRequestEvent["Records"][0]["cf"]["request"] {
   return {
-    clientIp: '1.2.3.4',
-    method: 'GET',
-    uri: '/api/test',
-    querystring: '',
+    clientIp: "1.2.3.4",
+    method: "GET",
+    uri: "/api/test",
+    querystring: "",
     headers: {},
     origin: {
       custom: {
-        domainName: 'api.example.com',
+        domainName: "api.example.com",
         port: 443,
-        protocol: 'https',
-        path: '',
-        sslProtocols: ['TLSv1.2'],
+        protocol: "https",
+        path: "",
+        sslProtocols: ["TLSv1.2"],
         readTimeout: 30,
         keepaliveTimeout: 5,
         customHeaders: {},
@@ -32,29 +32,29 @@ function createMockRequest(): CloudFrontRequestEvent['Records'][0]['cf']['reques
  * Header names should be alphanumeric with hyphens, starting with x-.
  */
 const headerNameArb: fc.Arbitrary<string> = fc
-  .array(fc.constantFrom(...'abcdefghijklmnopqrstuvwxyz0123456789-'.split('')), {
+  .array(fc.constantFrom(..."abcdefghijklmnopqrstuvwxyz0123456789-".split("")), {
     minLength: 1,
     maxLength: 20,
   })
-  .map((chars: string[]) => `x-${chars.join('')}`);
+  .map((chars: string[]) => `x-${chars.join("")}`);
 
 /**
  * Arbitrary for generating valid header values.
  * Header values should be non-empty strings without control characters.
  */
 const headerValueArb: fc.Arbitrary<string> = fc
-  .array(fc.constantFrom(...'abcdefghijklmnopqrstuvwxyz0123456789-_'.split('')), {
+  .array(fc.constantFrom(..."abcdefghijklmnopqrstuvwxyz0123456789-_".split("")), {
     minLength: 1,
     maxLength: 64,
   })
-  .map((chars: string[]) => chars.join(''));
+  .map((chars: string[]) => chars.join(""));
 
-describe('Lambda@Edge Origin Request Handler', () => {
+describe("Lambda@Edge Origin Request Handler", () => {
   beforeEach(() => {
     clearCache();
   });
 
-  describe('Property 1: Lambda@Edge Header Addition', () => {
+  describe("Property 1: Lambda@Edge Header Addition", () => {
     /**
      * **Property 1: Lambda@Edgeヘッダー付与**
      *
@@ -65,7 +65,7 @@ describe('Lambda@Edge Origin Request Handler', () => {
      *
      * **Validates: Requirements 2.3**
      */
-    test('addCustomHeader always adds the specified header to the request', () => {
+    test("addCustomHeader always adds the specified header to the request", () => {
       fc.assert(
         fc.property(headerNameArb, headerValueArb, (headerName: string, headerValue: string) => {
           // Arrange
@@ -90,7 +90,7 @@ describe('Lambda@Edge Origin Request Handler', () => {
      *
      * **Validates: Requirements 2.3**
      */
-    test('addCustomHeader preserves existing headers', () => {
+    test("addCustomHeader preserves existing headers", () => {
       const existingHeadersArb = fc.array(fc.tuple(headerNameArb, headerValueArb), {
         minLength: 1,
         maxLength: 5,
@@ -138,26 +138,26 @@ describe('Lambda@Edge Origin Request Handler', () => {
      *
      * **Validates: Requirements 2.3**
      */
-    test('addCustomHeader normalizes header name to lowercase', () => {
+    test("addCustomHeader normalizes header name to lowercase", () => {
       fc.assert(
         fc.property(headerValueArb, (headerValue: string) => {
           // Arrange
           const request = createMockRequest();
-          const headerName = 'X-Origin-Verify';
+          const headerName = "X-Origin-Verify";
 
           // Act
           const result = addCustomHeader(request, headerName, headerValue);
 
           // Assert
-          expect(result.headers['x-origin-verify']).toBeDefined();
-          expect(result.headers['x-origin-verify'][0].key).toBe(headerName);
+          expect(result.headers["x-origin-verify"]).toBeDefined();
+          expect(result.headers["x-origin-verify"][0].key).toBe(headerName);
         }),
         { numRuns: 100 },
       );
     });
   });
 
-  describe('Property 3: Cache Behavior', () => {
+  describe("Property 3: Cache Behavior", () => {
     /**
      * **Property 3: キャッシュ動作**
      *
@@ -168,7 +168,7 @@ describe('Lambda@Edge Origin Request Handler', () => {
      *
      * **Validates: Requirements 2.4, 2.5, 7.4**
      */
-    test('isCacheValid returns true when current time is before expiration', () => {
+    test("isCacheValid returns true when current time is before expiration", () => {
       fc.assert(
         fc.property(
           headerValueArb,
@@ -196,7 +196,7 @@ describe('Lambda@Edge Origin Request Handler', () => {
      *
      * **Validates: Requirements 2.5, 7.4**
      */
-    test('isCacheValid returns false when current time is at or after expiration', () => {
+    test("isCacheValid returns false when current time is at or after expiration", () => {
       fc.assert(
         fc.property(
           headerValueArb,
@@ -222,7 +222,7 @@ describe('Lambda@Edge Origin Request Handler', () => {
      *
      * **Validates: Requirements 2.4**
      */
-    test('isCacheValid returns false when cache is null', () => {
+    test("isCacheValid returns false when cache is null", () => {
       fc.assert(
         fc.property(fc.integer({ min: 0, max: 1000000000000 }), (currentTime: number) => {
           // Act & Assert
@@ -237,7 +237,7 @@ describe('Lambda@Edge Origin Request Handler', () => {
      *
      * **Validates: Requirements 7.1, 7.4**
      */
-    test('createCacheEntry sets correct expiration time', () => {
+    test("createCacheEntry sets correct expiration time", () => {
       fc.assert(
         fc.property(
           headerValueArb,
@@ -261,7 +261,7 @@ describe('Lambda@Edge Origin Request Handler', () => {
      *
      * **Validates: Requirements 7.1**
      */
-    test('createCacheEntry preserves the secret value', () => {
+    test("createCacheEntry preserves the secret value", () => {
       fc.assert(
         fc.property(
           headerValueArb,

@@ -1,30 +1,30 @@
-import { App, RemovalPolicy, Stack } from 'aws-cdk-lib';
-import { Match, Template } from 'aws-cdk-lib/assertions';
-import { RestApi } from 'aws-cdk-lib/aws-apigateway';
-import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
-import { Code, Function as LambdaFunction, Runtime, Version } from 'aws-cdk-lib/aws-lambda';
-import { FrontendConstruct } from '../../src/constructs/frontend-construct';
+import { App, RemovalPolicy, Stack } from "aws-cdk-lib";
+import { Match, Template } from "aws-cdk-lib/assertions";
+import { RestApi } from "aws-cdk-lib/aws-apigateway";
+import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
+import { Code, Function as LambdaFunction, Runtime, Version } from "aws-cdk-lib/aws-lambda";
+import { FrontendConstruct } from "../../src/constructs/frontend-construct";
 
-describe('FrontendConstruct', () => {
+describe("FrontendConstruct", () => {
   let app: App;
   let stack: Stack;
 
   beforeEach(() => {
     app = new App();
-    stack = new Stack(app, 'TestStack');
+    stack = new Stack(app, "TestStack");
   });
 
-  describe('S3 Bucket', () => {
-    test('creates S3 bucket', () => {
-      new FrontendConstruct(stack, 'Frontend');
+  describe("S3 Bucket", () => {
+    test("creates S3 bucket", () => {
+      new FrontendConstruct(stack, "Frontend");
       const template = Template.fromStack(stack);
-      template.resourceCountIs('AWS::S3::Bucket', 1);
+      template.resourceCountIs("AWS::S3::Bucket", 1);
     });
 
-    test('blocks public access', () => {
-      new FrontendConstruct(stack, 'Frontend');
+    test("blocks public access", () => {
+      new FrontendConstruct(stack, "Frontend");
       const template = Template.fromStack(stack);
-      template.hasResourceProperties('AWS::S3::Bucket', {
+      template.hasResourceProperties("AWS::S3::Bucket", {
         PublicAccessBlockConfiguration: {
           BlockPublicAcls: true,
           BlockPublicPolicy: true,
@@ -34,152 +34,152 @@ describe('FrontendConstruct', () => {
       });
     });
 
-    test('uses default removal policy (Retain)', () => {
-      new FrontendConstruct(stack, 'Frontend');
+    test("uses default removal policy (Retain)", () => {
+      new FrontendConstruct(stack, "Frontend");
       const template = Template.fromStack(stack);
-      template.hasResource('AWS::S3::Bucket', {
-        DeletionPolicy: 'Retain',
-        UpdateReplacePolicy: 'Retain',
+      template.hasResource("AWS::S3::Bucket", {
+        DeletionPolicy: "Retain",
+        UpdateReplacePolicy: "Retain",
       });
     });
 
-    test('does not enable autoDeleteObjects by default', () => {
-      new FrontendConstruct(stack, 'Frontend');
+    test("does not enable autoDeleteObjects by default", () => {
+      new FrontendConstruct(stack, "Frontend");
       const template = Template.fromStack(stack);
-      template.resourceCountIs('Custom::S3AutoDeleteObjects', 0);
+      template.resourceCountIs("Custom::S3AutoDeleteObjects", 0);
     });
 
-    test('applies RemovalPolicy.DESTROY via explicit props', () => {
-      new FrontendConstruct(stack, 'Frontend', {
+    test("applies RemovalPolicy.DESTROY via explicit props", () => {
+      new FrontendConstruct(stack, "Frontend", {
         removalPolicy: RemovalPolicy.DESTROY,
         autoDeleteObjects: true,
       });
       const template = Template.fromStack(stack);
-      template.hasResource('AWS::S3::Bucket', {
-        DeletionPolicy: 'Delete',
-        UpdateReplacePolicy: 'Delete',
+      template.hasResource("AWS::S3::Bucket", {
+        DeletionPolicy: "Delete",
+        UpdateReplacePolicy: "Delete",
       });
-      template.resourceCountIs('Custom::S3AutoDeleteObjects', 1);
+      template.resourceCountIs("Custom::S3AutoDeleteObjects", 1);
     });
   });
 
-  describe('CloudFront Distribution', () => {
-    test('creates CloudFront distribution', () => {
-      new FrontendConstruct(stack, 'Frontend');
+  describe("CloudFront Distribution", () => {
+    test("creates CloudFront distribution", () => {
+      new FrontendConstruct(stack, "Frontend");
       const template = Template.fromStack(stack);
-      template.resourceCountIs('AWS::CloudFront::Distribution', 1);
+      template.resourceCountIs("AWS::CloudFront::Distribution", 1);
     });
 
-    test('creates OAC and associates with distribution', () => {
-      new FrontendConstruct(stack, 'Frontend');
+    test("creates OAC and associates with distribution", () => {
+      new FrontendConstruct(stack, "Frontend");
       const template = Template.fromStack(stack);
-      template.resourceCountIs('AWS::CloudFront::OriginAccessControl', 1);
-      template.hasResourceProperties('AWS::CloudFront::OriginAccessControl', {
+      template.resourceCountIs("AWS::CloudFront::OriginAccessControl", 1);
+      template.hasResourceProperties("AWS::CloudFront::OriginAccessControl", {
         OriginAccessControlConfig: {
-          OriginAccessControlOriginType: 's3',
-          SigningBehavior: 'always',
-          SigningProtocol: 'sigv4',
+          OriginAccessControlOriginType: "s3",
+          SigningBehavior: "always",
+          SigningProtocol: "sigv4",
         },
       });
     });
 
-    test('sets PriceClass.PRICE_CLASS_100', () => {
-      new FrontendConstruct(stack, 'Frontend');
+    test("sets PriceClass.PRICE_CLASS_100", () => {
+      new FrontendConstruct(stack, "Frontend");
       const template = Template.fromStack(stack);
-      template.hasResourceProperties('AWS::CloudFront::Distribution', {
-        DistributionConfig: { PriceClass: 'PriceClass_100' },
+      template.hasResourceProperties("AWS::CloudFront::Distribution", {
+        DistributionConfig: { PriceClass: "PriceClass_100" },
       });
     });
 
-    test('does not set custom error responses', () => {
-      new FrontendConstruct(stack, 'Frontend');
+    test("does not set custom error responses", () => {
+      new FrontendConstruct(stack, "Frontend");
       const template = Template.fromStack(stack);
-      template.hasResourceProperties('AWS::CloudFront::Distribution', {
+      template.hasResourceProperties("AWS::CloudFront::Distribution", {
         DistributionConfig: { CustomErrorResponses: Match.absent() },
       });
     });
 
-    test('sets defaultRootObject to index.html', () => {
-      new FrontendConstruct(stack, 'Frontend');
+    test("sets defaultRootObject to index.html", () => {
+      new FrontendConstruct(stack, "Frontend");
       const template = Template.fromStack(stack);
-      template.hasResourceProperties('AWS::CloudFront::Distribution', {
-        DistributionConfig: { DefaultRootObject: 'index.html' },
+      template.hasResourceProperties("AWS::CloudFront::Distribution", {
+        DistributionConfig: { DefaultRootObject: "index.html" },
       });
     });
   });
 
-  describe('CloudFront Function', () => {
-    test('creates CloudFront Function', () => {
-      new FrontendConstruct(stack, 'Frontend');
+  describe("CloudFront Function", () => {
+    test("creates CloudFront Function", () => {
+      new FrontendConstruct(stack, "Frontend");
       const template = Template.fromStack(stack);
-      template.resourceCountIs('AWS::CloudFront::Function', 1);
+      template.resourceCountIs("AWS::CloudFront::Function", 1);
     });
 
-    test('associates CloudFront Function with default behavior', () => {
-      new FrontendConstruct(stack, 'Frontend');
+    test("associates CloudFront Function with default behavior", () => {
+      new FrontendConstruct(stack, "Frontend");
       const template = Template.fromStack(stack);
-      template.hasResourceProperties('AWS::CloudFront::Distribution', {
+      template.hasResourceProperties("AWS::CloudFront::Distribution", {
         DistributionConfig: {
           DefaultCacheBehavior: {
-            FunctionAssociations: Match.arrayWith([Match.objectLike({ EventType: 'viewer-request' })]),
+            FunctionAssociations: Match.arrayWith([Match.objectLike({ EventType: "viewer-request" })]),
           },
         },
       });
     });
   });
 
-  describe('API Gateway Routing', () => {
+  describe("API Gateway Routing", () => {
     const createValidRestApi = () => {
-      const api = new RestApi(stack, 'TestApi');
-      api.root.addMethod('GET');
+      const api = new RestApi(stack, "TestApi");
+      api.root.addMethod("GET");
       return api;
     };
 
-    test('adds /api/* behavior when api is provided', () => {
+    test("adds /api/* behavior when api is provided", () => {
       const api = createValidRestApi();
-      new FrontendConstruct(stack, 'Frontend', { api });
+      new FrontendConstruct(stack, "Frontend", { api });
       const template = Template.fromStack(stack);
-      template.hasResourceProperties('AWS::CloudFront::Distribution', {
+      template.hasResourceProperties("AWS::CloudFront::Distribution", {
         DistributionConfig: {
-          CacheBehaviors: Match.arrayWith([Match.objectLike({ PathPattern: '/api/*' })]),
+          CacheBehaviors: Match.arrayWith([Match.objectLike({ PathPattern: "/api/*" })]),
         },
       });
     });
 
-    test('does not add /api/* behavior when api is not provided', () => {
-      new FrontendConstruct(stack, 'Frontend');
+    test("does not add /api/* behavior when api is not provided", () => {
+      new FrontendConstruct(stack, "Frontend");
       const template = Template.fromStack(stack);
-      template.hasResourceProperties('AWS::CloudFront::Distribution', {
+      template.hasResourceProperties("AWS::CloudFront::Distribution", {
         DistributionConfig: { CacheBehaviors: Match.absent() },
       });
     });
 
-    test('disables caching for API Gateway behavior', () => {
+    test("disables caching for API Gateway behavior", () => {
       const api = createValidRestApi();
-      new FrontendConstruct(stack, 'Frontend', { api });
+      new FrontendConstruct(stack, "Frontend", { api });
       const template = Template.fromStack(stack);
-      template.hasResourceProperties('AWS::CloudFront::Distribution', {
+      template.hasResourceProperties("AWS::CloudFront::Distribution", {
         DistributionConfig: {
           CacheBehaviors: Match.arrayWith([
             Match.objectLike({
-              PathPattern: '/api/*',
-              CachePolicyId: '4135ea2d-6df8-44a3-9df3-4b5a84be39ad',
+              PathPattern: "/api/*",
+              CachePolicyId: "4135ea2d-6df8-44a3-9df3-4b5a84be39ad",
             }),
           ]),
         },
       });
     });
 
-    test('uses ALL_VIEWER_EXCEPT_HOST_HEADER origin request policy for API Gateway', () => {
+    test("uses ALL_VIEWER_EXCEPT_HOST_HEADER origin request policy for API Gateway", () => {
       const api = createValidRestApi();
-      new FrontendConstruct(stack, 'Frontend', { api });
+      new FrontendConstruct(stack, "Frontend", { api });
       const template = Template.fromStack(stack);
-      template.hasResourceProperties('AWS::CloudFront::Distribution', {
+      template.hasResourceProperties("AWS::CloudFront::Distribution", {
         DistributionConfig: {
           CacheBehaviors: Match.arrayWith([
             Match.objectLike({
-              PathPattern: '/api/*',
-              OriginRequestPolicyId: 'b689b0a8-53d0-40ab-baf2-68738e2966ac',
+              PathPattern: "/api/*",
+              OriginRequestPolicyId: "b689b0a8-53d0-40ab-baf2-68738e2966ac",
             }),
           ]),
         },
@@ -187,121 +187,121 @@ describe('FrontendConstruct', () => {
     });
   });
 
-  describe('Custom Header', () => {
+  describe("Custom Header", () => {
     const createValidRestApi = () => {
-      const api = new RestApi(stack, 'TestApi');
-      api.root.addMethod('GET');
+      const api = new RestApi(stack, "TestApi");
+      api.root.addMethod("GET");
       return api;
     };
 
-    test('uses default custom header name when api is provided', () => {
+    test("uses default custom header name when api is provided", () => {
       const api = createValidRestApi();
-      const frontend = new FrontendConstruct(stack, 'Frontend', { api });
-      expect(frontend.customHeaderName).toBe('x-origin-verify');
+      const frontend = new FrontendConstruct(stack, "Frontend", { api });
+      expect(frontend.customHeaderName).toBe("x-origin-verify");
     });
 
-    test('uses custom header name when provided', () => {
+    test("uses custom header name when provided", () => {
       const api = createValidRestApi();
-      const frontend = new FrontendConstruct(stack, 'Frontend', {
+      const frontend = new FrontendConstruct(stack, "Frontend", {
         api,
-        customHeaderName: 'x-custom-header',
+        customHeaderName: "x-custom-header",
       });
-      expect(frontend.customHeaderName).toBe('x-custom-header');
+      expect(frontend.customHeaderName).toBe("x-custom-header");
     });
 
-    test('does not set custom header properties when api is not provided', () => {
-      const frontend = new FrontendConstruct(stack, 'Frontend');
+    test("does not set custom header properties when api is not provided", () => {
+      const frontend = new FrontendConstruct(stack, "Frontend");
       expect(frontend.customHeaderName).toBeUndefined();
     });
   });
 
-  describe('WAF WebACL', () => {
-    test('applies WAF WebACL when webAclArn is provided', () => {
-      const webAclArn = 'arn:aws:wafv2:us-east-1:123456789012:global/webacl/test-acl/12345678-1234-1234-1234-123456789012';
-      new FrontendConstruct(stack, 'Frontend', { webAclArn });
+  describe("WAF WebACL", () => {
+    test("applies WAF WebACL when webAclArn is provided", () => {
+      const webAclArn = "arn:aws:wafv2:us-east-1:123456789012:global/webacl/test-acl/12345678-1234-1234-1234-123456789012";
+      new FrontendConstruct(stack, "Frontend", { webAclArn });
       const template = Template.fromStack(stack);
-      template.hasResourceProperties('AWS::CloudFront::Distribution', {
+      template.hasResourceProperties("AWS::CloudFront::Distribution", {
         DistributionConfig: { WebACLId: webAclArn },
       });
     });
 
-    test('does not apply WAF WebACL when webAclArn is not provided', () => {
-      new FrontendConstruct(stack, 'Frontend');
+    test("does not apply WAF WebACL when webAclArn is not provided", () => {
+      new FrontendConstruct(stack, "Frontend");
       const template = Template.fromStack(stack);
-      template.hasResourceProperties('AWS::CloudFront::Distribution', {
+      template.hasResourceProperties("AWS::CloudFront::Distribution", {
         DistributionConfig: { WebACLId: Match.absent() },
       });
     });
   });
 
-  describe('Output Properties', () => {
-    test('exposes bucket property', () => {
-      const frontend = new FrontendConstruct(stack, 'Frontend');
+  describe("Output Properties", () => {
+    test("exposes bucket property", () => {
+      const frontend = new FrontendConstruct(stack, "Frontend");
       expect(frontend.bucket).toBeDefined();
     });
 
-    test('exposes distribution property', () => {
-      const frontend = new FrontendConstruct(stack, 'Frontend');
+    test("exposes distribution property", () => {
+      const frontend = new FrontendConstruct(stack, "Frontend");
       expect(frontend.distribution).toBeDefined();
     });
 
-    test('exposes distributionDomainName property', () => {
-      const frontend = new FrontendConstruct(stack, 'Frontend');
+    test("exposes distributionDomainName property", () => {
+      const frontend = new FrontendConstruct(stack, "Frontend");
       expect(frontend.distributionDomainName).toBeDefined();
-      expect(typeof frontend.distributionDomainName).toBe('string');
+      expect(typeof frontend.distributionDomainName).toBe("string");
     });
 
-    test('exposes customHeaderName when api is provided', () => {
-      const api = new RestApi(stack, 'TestApi');
-      api.root.addMethod('GET');
-      const frontend = new FrontendConstruct(stack, 'Frontend', { api });
+    test("exposes customHeaderName when api is provided", () => {
+      const api = new RestApi(stack, "TestApi");
+      api.root.addMethod("GET");
+      const frontend = new FrontendConstruct(stack, "Frontend", { api });
       expect(frontend.customHeaderName).toBeDefined();
-      expect(typeof frontend.customHeaderName).toBe('string');
+      expect(typeof frontend.customHeaderName).toBe("string");
     });
   });
 
-  describe('Lambda@Edge Integration', () => {
+  describe("Lambda@Edge Integration", () => {
     const createValidRestApi = () => {
-      const api = new RestApi(stack, 'TestApi');
-      api.root.addMethod('GET');
+      const api = new RestApi(stack, "TestApi");
+      api.root.addMethod("GET");
       return api;
     };
 
     const createEdgeFunctionVersion = () => {
-      const fn = new LambdaFunction(stack, 'EdgeFunction', {
+      const fn = new LambdaFunction(stack, "EdgeFunction", {
         runtime: Runtime.NODEJS_22_X,
-        handler: 'index.handler',
-        code: Code.fromInline('exports.handler = async () => {}'),
+        handler: "index.handler",
+        code: Code.fromInline("exports.handler = async () => {}"),
       });
-      return new Version(stack, 'EdgeFunctionVersion', { lambda: fn });
+      return new Version(stack, "EdgeFunctionVersion", { lambda: fn });
     };
 
-    test('associates Lambda@Edge with /api/* behavior when edgeFunctionVersion is provided', () => {
+    test("associates Lambda@Edge with /api/* behavior when edgeFunctionVersion is provided", () => {
       const api = createValidRestApi();
       const edgeFunctionVersion = createEdgeFunctionVersion();
-      new FrontendConstruct(stack, 'Frontend', { api, edgeFunctionVersion });
+      new FrontendConstruct(stack, "Frontend", { api, edgeFunctionVersion });
       const template = Template.fromStack(stack);
-      template.hasResourceProperties('AWS::CloudFront::Distribution', {
+      template.hasResourceProperties("AWS::CloudFront::Distribution", {
         DistributionConfig: {
           CacheBehaviors: Match.arrayWith([
             Match.objectLike({
-              PathPattern: '/api/*',
-              LambdaFunctionAssociations: Match.arrayWith([Match.objectLike({ EventType: 'origin-request' })]),
+              PathPattern: "/api/*",
+              LambdaFunctionAssociations: Match.arrayWith([Match.objectLike({ EventType: "origin-request" })]),
             }),
           ]),
         },
       });
     });
 
-    test('does not associate Lambda@Edge when edgeFunctionVersion is not provided', () => {
+    test("does not associate Lambda@Edge when edgeFunctionVersion is not provided", () => {
       const api = createValidRestApi();
-      new FrontendConstruct(stack, 'Frontend', { api });
+      new FrontendConstruct(stack, "Frontend", { api });
       const template = Template.fromStack(stack);
-      template.hasResourceProperties('AWS::CloudFront::Distribution', {
+      template.hasResourceProperties("AWS::CloudFront::Distribution", {
         DistributionConfig: {
           CacheBehaviors: Match.arrayWith([
             Match.objectLike({
-              PathPattern: '/api/*',
+              PathPattern: "/api/*",
               LambdaFunctionAssociations: Match.absent(),
             }),
           ]),
@@ -311,19 +311,19 @@ describe('FrontendConstruct', () => {
   });
 });
 
-describe('Preservation: No Custom Domain Deployment', () => {
+describe("Preservation: No Custom Domain Deployment", () => {
   let app: App;
   let stack: Stack;
 
   beforeEach(() => {
     app = new App();
-    stack = new Stack(app, 'TestStack');
+    stack = new Stack(app, "TestStack");
   });
 
-  test('creates CloudFront distribution without certificate and domainNames when domainName is not provided', () => {
-    new FrontendConstruct(stack, 'Frontend');
+  test("creates CloudFront distribution without certificate and domainNames when domainName is not provided", () => {
+    new FrontendConstruct(stack, "Frontend");
     const template = Template.fromStack(stack);
-    template.hasResourceProperties('AWS::CloudFront::Distribution', {
+    template.hasResourceProperties("AWS::CloudFront::Distribution", {
       DistributionConfig: {
         Aliases: Match.absent(),
         ViewerCertificate: Match.absent(),
@@ -331,114 +331,114 @@ describe('Preservation: No Custom Domain Deployment', () => {
     });
   });
 
-  test('applies provided external certificate to CloudFront distribution', () => {
-    const certArn = 'arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012';
-    const certificate = Certificate.fromCertificateArn(stack, 'ImportedCert', certArn);
-    new FrontendConstruct(stack, 'Frontend', {
-      domainName: 'www.example.com',
+  test("applies provided external certificate to CloudFront distribution", () => {
+    const certArn = "arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012";
+    const certificate = Certificate.fromCertificateArn(stack, "ImportedCert", certArn);
+    new FrontendConstruct(stack, "Frontend", {
+      domainName: "www.example.com",
       certificate,
     });
     const template = Template.fromStack(stack);
-    template.hasResourceProperties('AWS::CloudFront::Distribution', {
+    template.hasResourceProperties("AWS::CloudFront::Distribution", {
       DistributionConfig: {
-        Aliases: ['www.example.com'],
+        Aliases: ["www.example.com"],
         ViewerCertificate: Match.objectLike({
           AcmCertificateArn: certArn,
-          SslSupportMethod: 'sni-only',
+          SslSupportMethod: "sni-only",
         }),
       },
     });
   });
 
-  test('does not create ACM certificate resource when domainName is not provided', () => {
-    new FrontendConstruct(stack, 'Frontend');
+  test("does not create ACM certificate resource when domainName is not provided", () => {
+    new FrontendConstruct(stack, "Frontend");
     const template = Template.fromStack(stack);
-    template.resourceCountIs('AWS::CertificateManager::Certificate', 0);
+    template.resourceCountIs("AWS::CertificateManager::Certificate", 0);
   });
 });
 
-describe('Bug Condition Exploration: Certificate Region', () => {
+describe("Bug Condition Exploration: Certificate Region", () => {
   let app: App;
   let stack: Stack;
 
   beforeEach(() => {
     app = new App();
-    stack = new Stack(app, 'TestStack', {
-      env: { region: 'ap-northeast-1', account: '123456789012' },
+    stack = new Stack(app, "TestStack", {
+      env: { region: "ap-northeast-1", account: "123456789012" },
     });
   });
 
-  test('should throw validation error when domainName is provided without certificate', () => {
+  test("should throw validation error when domainName is provided without certificate", () => {
     expect(() => {
-      new FrontendConstruct(stack, 'Frontend', {
-        domainName: 'www.example.com',
-        hostedZoneId: 'Z1234567890ABC',
-        zoneName: 'example.com',
+      new FrontendConstruct(stack, "Frontend", {
+        domainName: "www.example.com",
+        hostedZoneId: "Z1234567890ABC",
+        zoneName: "example.com",
       });
     }).toThrow();
   });
 });
 
-describe('Certificate Validation (Post-Fix)', () => {
+describe("Certificate Validation (Post-Fix)", () => {
   let app: App;
   let stack: Stack;
 
   beforeEach(() => {
     app = new App();
-    stack = new Stack(app, 'TestStack', {
-      env: { region: 'ap-northeast-1', account: '123456789012' },
+    stack = new Stack(app, "TestStack", {
+      env: { region: "ap-northeast-1", account: "123456789012" },
     });
   });
 
-  test('throws validation error when domainName is provided without certificate', () => {
+  test("throws validation error when domainName is provided without certificate", () => {
     expect(() => {
-      new FrontendConstruct(stack, 'Frontend', {
-        domainName: 'www.example.com',
+      new FrontendConstruct(stack, "Frontend", {
+        domainName: "www.example.com",
       });
     }).toThrow(/certificate is required when domainName is provided/);
   });
 
-  test('throws validation error with guidance message mentioning ServerlessSpaSecurityConstruct', () => {
+  test("throws validation error with guidance message mentioning ServerlessSpaSecurityConstruct", () => {
     expect(() => {
-      new FrontendConstruct(stack, 'Frontend', {
-        domainName: 'www.example.com',
-        hostedZoneId: 'Z1234567890ABC',
-        zoneName: 'example.com',
+      new FrontendConstruct(stack, "Frontend", {
+        domainName: "www.example.com",
+        hostedZoneId: "Z1234567890ABC",
+        zoneName: "example.com",
       });
     }).toThrow(/ServerlessSpaSecurityConstruct/);
   });
 
-  test('works correctly when domainName and certificate are both provided', () => {
-    const certArn = 'arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012';
-    const certificate = Certificate.fromCertificateArn(stack, 'ImportedCert', certArn);
-    const frontend = new FrontendConstruct(stack, 'Frontend', {
-      domainName: 'www.example.com',
+  test("works correctly when domainName and certificate are both provided", () => {
+    const certArn = "arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012";
+    const certificate = Certificate.fromCertificateArn(stack, "ImportedCert", certArn);
+    const frontend = new FrontendConstruct(stack, "Frontend", {
+      domainName: "www.example.com",
       certificate,
-      hostedZoneId: 'Z1234567890ABC',
-      zoneName: 'example.com',
+      hostedZoneId: "Z1234567890ABC",
+      zoneName: "example.com",
     });
     const template = Template.fromStack(stack);
-    template.hasResourceProperties('AWS::CloudFront::Distribution', {
+    template.hasResourceProperties("AWS::CloudFront::Distribution", {
       DistributionConfig: {
-        Aliases: ['www.example.com'],
+        Aliases: ["www.example.com"],
         ViewerCertificate: Match.objectLike({
           AcmCertificateArn: certArn,
-          SslSupportMethod: 'sni-only',
+          SslSupportMethod: "sni-only",
         }),
       },
     });
-    template.resourceCountIs('AWS::Route53::RecordSet', 1);
+    template.resourceCountIs("AWS::Route53::RecordSet", 1);
     expect(frontend.certificate).toBeDefined();
   });
 
-  test('does not create ACM certificate resource when external certificate is provided', () => {
-    const certArn = 'arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012';
-    const certificate = Certificate.fromCertificateArn(stack, 'ImportedCert', certArn);
-    new FrontendConstruct(stack, 'Frontend', {
-      domainName: 'www.example.com',
+  test("does not create ACM certificate resource when external certificate is provided", () => {
+    const certArn = "arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012";
+    const certificate = Certificate.fromCertificateArn(stack, "ImportedCert", certArn);
+    new FrontendConstruct(stack, "Frontend", {
+      domainName: "www.example.com",
       certificate,
     });
     const template = Template.fromStack(stack);
-    template.resourceCountIs('AWS::CertificateManager::Certificate', 0);
+    template.resourceCountIs("AWS::CertificateManager::Certificate", 0);
   });
 });

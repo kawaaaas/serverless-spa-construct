@@ -1,13 +1,13 @@
-import { randomUUID } from 'crypto';
+import { randomUUID } from "crypto";
 import {
   DescribeSecretCommand,
   GetSecretValueCommand,
   PutSecretValueCommand,
   SecretsManagerClient,
   UpdateSecretVersionStageCommand,
-} from '@aws-sdk/client-secrets-manager';
-import { PutParameterCommand, SSMClient } from '@aws-sdk/client-ssm';
-import { SecretsManagerRotationEvent, SecretsManagerRotationHandler } from 'aws-lambda';
+} from "@aws-sdk/client-secrets-manager";
+import { PutParameterCommand, SSMClient } from "@aws-sdk/client-ssm";
+import { SecretsManagerRotationEvent, SecretsManagerRotationHandler } from "aws-lambda";
 
 const secretsManager = new SecretsManagerClient({});
 const ssm = new SSMClient({});
@@ -28,24 +28,24 @@ const ssm = new SSMClient({});
  */
 export const handler: SecretsManagerRotationHandler = async (event: SecretsManagerRotationEvent): Promise<void> => {
   const { SecretId, ClientRequestToken, Step } = event;
-  const ssmPrefix = process.env.SSM_PREFIX || '/myapp/security/';
-  const customHeaderName = process.env.CUSTOM_HEADER_NAME || 'x-origin-verify';
+  const ssmPrefix = process.env.SSM_PREFIX || "/myapp/security/";
+  const customHeaderName = process.env.CUSTOM_HEADER_NAME || "x-origin-verify";
 
   console.log(`Processing rotation step: ${Step} for secret: ${SecretId}`);
 
   switch (Step) {
-    case 'createSecret':
+    case "createSecret":
       await createSecret(SecretId, ClientRequestToken, customHeaderName);
       break;
-    case 'setSecret':
+    case "setSecret":
       // No external service to update
-      console.log('setSecret step - no action needed');
+      console.log("setSecret step - no action needed");
       break;
-    case 'testSecret':
+    case "testSecret":
       // No external service to test
-      console.log('testSecret step - no action needed');
+      console.log("testSecret step - no action needed");
       break;
-    case 'finishSecret':
+    case "finishSecret":
       await finishSecret(SecretId, ClientRequestToken, ssmPrefix);
       break;
     default:
@@ -63,10 +63,10 @@ async function createSecret(secretId: string, clientRequestToken: string, custom
       new GetSecretValueCommand({
         SecretId: secretId,
         VersionId: clientRequestToken,
-        VersionStage: 'AWSPENDING',
+        VersionStage: "AWSPENDING",
       }),
     );
-    console.log('Secret version already exists, skipping creation');
+    console.log("Secret version already exists, skipping creation");
     return;
   } catch {
     // Secret version doesn't exist, create it
@@ -85,11 +85,11 @@ async function createSecret(secretId: string, clientRequestToken: string, custom
       SecretId: secretId,
       ClientRequestToken: clientRequestToken,
       SecretString: secretValue,
-      VersionStages: ['AWSPENDING'],
+      VersionStages: ["AWSPENDING"],
     }),
   );
 
-  console.log('Created new secret version with new UUID');
+  console.log("Created new secret version with new UUID");
 }
 
 /**
@@ -107,8 +107,8 @@ async function finishSecret(secretId: string, clientRequestToken: string, ssmPre
   // Check if the pending version is already current
   const versions = describeResponse.VersionIdsToStages || {};
   const pendingStages = versions[clientRequestToken] as string[] | undefined;
-  if (pendingStages?.includes('AWSCURRENT')) {
-    console.log('Secret version is already current');
+  if (pendingStages?.includes("AWSCURRENT")) {
+    console.log("Secret version is already current");
     return;
   }
 
@@ -116,7 +116,7 @@ async function finishSecret(secretId: string, clientRequestToken: string, ssmPre
   let currentVersion: string | undefined;
   for (const [versionId, stages] of Object.entries(versions)) {
     const stageList = stages as string[] | undefined;
-    if (stageList?.includes('AWSCURRENT') && versionId !== clientRequestToken) {
+    if (stageList?.includes("AWSCURRENT") && versionId !== clientRequestToken) {
       currentVersion = versionId;
       break;
     }
@@ -126,7 +126,7 @@ async function finishSecret(secretId: string, clientRequestToken: string, ssmPre
   await secretsManager.send(
     new UpdateSecretVersionStageCommand({
       SecretId: secretId,
-      VersionStage: 'AWSCURRENT',
+      VersionStage: "AWSCURRENT",
       MoveToVersionId: clientRequestToken,
       RemoveFromVersionId: currentVersion,
     }),
@@ -139,10 +139,10 @@ async function finishSecret(secretId: string, clientRequestToken: string, ssmPre
     new PutParameterCommand({
       Name: `${ssmPrefix}secret-arn`,
       Value: describeResponse.ARN || secretId,
-      Type: 'String',
+      Type: "String",
       Overwrite: true,
     }),
   );
 
-  console.log('Finished rotation and updated SSM parameter');
+  console.log("Finished rotation and updated SSM parameter");
 }

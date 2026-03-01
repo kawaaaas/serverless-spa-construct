@@ -1,5 +1,5 @@
-import { GetSecretValueCommand, SecretsManagerClient } from '@aws-sdk/client-secrets-manager';
-import { CloudFrontRequestEvent, CloudFrontRequestHandler, CloudFrontRequestResult } from 'aws-lambda';
+import { GetSecretValueCommand, SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
+import { CloudFrontRequestEvent, CloudFrontRequestHandler, CloudFrontRequestResult } from "aws-lambda";
 
 /**
  * Secret cache structure for storing secret values with TTL.
@@ -33,7 +33,7 @@ let secretCache: SecretCache | null = null;
  * Defaults to 'us-east-1' where the secret is stored.
  */
 function getSecretRegion(): string {
-  return process.env.SECRET_REGION || 'us-east-1';
+  return process.env.SECRET_REGION || "us-east-1";
 }
 
 /**
@@ -67,7 +67,7 @@ function getSecretsManagerClient(): SecretsManagerClient {
 function getSecretName(): string {
   const secretName = process.env.SECRET_NAME;
   if (!secretName) {
-    throw new Error('SECRET_NAME environment variable is not set');
+    throw new Error("SECRET_NAME environment variable is not set");
   }
   return secretName;
 }
@@ -76,7 +76,7 @@ function getSecretName(): string {
  * Gets the custom header name from environment variables.
  */
 function getCustomHeaderName(): string {
-  return process.env.CUSTOM_HEADER_NAME || 'x-origin-verify';
+  return process.env.CUSTOM_HEADER_NAME || "x-origin-verify";
 }
 
 /**
@@ -119,13 +119,13 @@ async function fetchSecretValue(secretName: string): Promise<SecretValue> {
   );
 
   if (!response.SecretString) {
-    throw new Error('Secret value is empty');
+    throw new Error("Secret value is empty");
   }
 
   const secretValue = JSON.parse(response.SecretString) as SecretValue;
 
   if (!secretValue.headerValue) {
-    throw new Error('Secret does not contain headerValue');
+    throw new Error("Secret does not contain headerValue");
   }
 
   return secretValue;
@@ -140,18 +140,18 @@ async function getSecretValue(): Promise<string> {
 
   // Check if cache is valid
   if (isCacheValid(secretCache, currentTime)) {
-    console.log('Using cached secret value');
+    console.log("Using cached secret value");
     return secretCache!.value;
   }
 
   // Fetch new secret value
-  console.log('Fetching secret value from Secrets Manager');
+  console.log("Fetching secret value from Secrets Manager");
   const secretName = getSecretName();
   const secretValue = await fetchSecretValue(secretName);
 
   // Update cache
   secretCache = createCacheEntry(secretValue.headerValue, cacheTtl, currentTime);
-  console.log('Secret value cached');
+  console.log("Secret value cached");
 
   return secretValue.headerValue;
 }
@@ -161,10 +161,10 @@ async function getSecretValue(): Promise<string> {
  */
 function createForbiddenResponse(message: string): CloudFrontRequestResult {
   return {
-    status: '403',
-    statusDescription: 'Forbidden',
+    status: "403",
+    statusDescription: "Forbidden",
     headers: {
-      'content-type': [{ key: 'Content-Type', value: 'application/json' }],
+      "content-type": [{ key: "Content-Type", value: "application/json" }],
     },
     body: JSON.stringify({ error: message }),
   };
@@ -174,10 +174,10 @@ function createForbiddenResponse(message: string): CloudFrontRequestResult {
  * Adds custom header to the request.
  */
 export function addCustomHeader(
-  request: CloudFrontRequestEvent['Records'][0]['cf']['request'],
+  request: CloudFrontRequestEvent["Records"][0]["cf"]["request"],
   headerName: string,
   headerValue: string,
-): CloudFrontRequestEvent['Records'][0]['cf']['request'] {
+): CloudFrontRequestEvent["Records"][0]["cf"]["request"] {
   // CloudFront headers use lowercase keys
   const normalizedHeaderName = headerName.toLowerCase();
 
@@ -217,8 +217,8 @@ export const handler: CloudFrontRequestHandler = async (event: CloudFrontRequest
     return request;
   } catch (error) {
     // Log error and return 403
-    console.error('Failed to process request:', error);
-    return createForbiddenResponse('Access denied');
+    console.error("Failed to process request:", error);
+    return createForbiddenResponse("Access denied");
   }
 };
 
