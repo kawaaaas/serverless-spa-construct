@@ -73,7 +73,7 @@ jobs:
         with:
           node-version: lts/*
       - name: Download build artifacts
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: build-artifact
           path: dist
@@ -97,7 +97,7 @@ jobs:
         with:
           node-version: lts/*
       - name: Download build artifacts
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: build-artifact
           path: dist
