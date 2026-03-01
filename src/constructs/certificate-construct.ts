@@ -1,6 +1,6 @@
-import { Certificate, CertificateValidation, ICertificate } from 'aws-cdk-lib/aws-certificatemanager';
-import { HostedZone, IHostedZone } from 'aws-cdk-lib/aws-route53';
-import { Construct } from 'constructs';
+import { Certificate, CertificateValidation, ICertificate } from "aws-cdk-lib/aws-certificatemanager";
+import { HostedZone, IHostedZone } from "aws-cdk-lib/aws-route53";
+import { Construct } from "constructs";
 
 /**
  * Properties for CertificateConstruct.
@@ -59,13 +59,13 @@ export class CertificateConstruct extends Construct {
     super(scope, id);
 
     // Look up hosted zone for DNS validation
-    const hostedZone: IHostedZone = HostedZone.fromHostedZoneAttributes(this, 'HostedZone', {
+    const hostedZone: IHostedZone = HostedZone.fromHostedZoneAttributes(this, "HostedZone", {
       hostedZoneId: props.hostedZoneId,
       zoneName: props.zoneName,
     });
 
     // Create ACM certificate with DNS validation
-    const certificate = new Certificate(this, 'Certificate', {
+    const certificate = new Certificate(this, "Certificate", {
       domainName: props.domainName,
       subjectAlternativeNames: props.alternativeDomainNames,
       validation: CertificateValidation.fromDns(hostedZone),

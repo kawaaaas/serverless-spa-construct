@@ -1,6 +1,6 @@
-import { RemovalPolicy } from 'aws-cdk-lib';
-import { CfnWebACL } from 'aws-cdk-lib/aws-wafv2';
-import { Construct } from 'constructs';
+import { RemovalPolicy } from "aws-cdk-lib";
+import { CfnWebACL } from "aws-cdk-lib/aws-wafv2";
+import { Construct } from "constructs";
 
 /**
  * Default rate limit for WAF (requests per 5 minutes).
@@ -172,18 +172,18 @@ export class WafConstruct extends Construct {
       const rateLimit = props?.rateLimit ?? DEFAULT_RATE_LIMIT;
       if (rateLimit > 0) {
         rules.push({
-          name: 'RateLimitRule',
+          name: "RateLimitRule",
           priority: priority++,
           action: { block: {} },
           statement: {
             rateBasedStatement: {
               limit: rateLimit,
-              aggregateKeyType: 'IP',
+              aggregateKeyType: "IP",
             },
           },
           visibilityConfig: {
             cloudWatchMetricsEnabled: true,
-            metricName: 'RateLimitRuleMetric',
+            metricName: "RateLimitRuleMetric",
             sampledRequestsEnabled: true,
           },
         });
@@ -193,18 +193,18 @@ export class WafConstruct extends Construct {
       const enableCommonRuleSet = props?.enableCommonRuleSet ?? true;
       if (enableCommonRuleSet) {
         rules.push({
-          name: 'AWSManagedRulesCommonRuleSet',
+          name: "AWSManagedRulesCommonRuleSet",
           priority: priority++,
           overrideAction: { none: {} },
           statement: {
             managedRuleGroupStatement: {
-              vendorName: 'AWS',
-              name: 'AWSManagedRulesCommonRuleSet',
+              vendorName: "AWS",
+              name: "AWSManagedRulesCommonRuleSet",
             },
           },
           visibilityConfig: {
             cloudWatchMetricsEnabled: true,
-            metricName: 'AWSManagedRulesCommonRuleSetMetric',
+            metricName: "AWSManagedRulesCommonRuleSetMetric",
             sampledRequestsEnabled: true,
           },
         });
@@ -214,18 +214,18 @@ export class WafConstruct extends Construct {
       const enableSqliRuleSet = props?.enableSqliRuleSet ?? true;
       if (enableSqliRuleSet) {
         rules.push({
-          name: 'AWSManagedRulesSQLiRuleSet',
+          name: "AWSManagedRulesSQLiRuleSet",
           priority: priority++,
           overrideAction: { none: {} },
           statement: {
             managedRuleGroupStatement: {
-              vendorName: 'AWS',
-              name: 'AWSManagedRulesSQLiRuleSet',
+              vendorName: "AWS",
+              name: "AWSManagedRulesSQLiRuleSet",
             },
           },
           visibilityConfig: {
             cloudWatchMetricsEnabled: true,
-            metricName: 'AWSManagedRulesSQLiRuleSetMetric',
+            metricName: "AWSManagedRulesSQLiRuleSetMetric",
             sampledRequestsEnabled: true,
           },
         });
@@ -251,12 +251,12 @@ export class WafConstruct extends Construct {
     }
 
     // Create WAF WebACL with CLOUDFRONT scope
-    this.webAcl = new CfnWebACL(this, 'WebAcl', {
-      scope: 'CLOUDFRONT',
+    this.webAcl = new CfnWebACL(this, "WebAcl", {
+      scope: "CLOUDFRONT",
       defaultAction,
       visibilityConfig: {
         cloudWatchMetricsEnabled: true,
-        metricName: 'WebAclMetric',
+        metricName: "WebAclMetric",
         sampledRequestsEnabled: true,
       },
       rules,

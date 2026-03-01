@@ -1,14 +1,14 @@
-import { RemovalPolicy, Stack, Tags } from 'aws-cdk-lib';
-import { Certificate, ICertificate } from 'aws-cdk-lib/aws-certificatemanager';
-import { Attribute } from 'aws-cdk-lib/aws-dynamodb';
-import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
-import { IVersion, Version } from 'aws-cdk-lib/aws-lambda';
-import { AwsCustomResource, AwsCustomResourcePolicy, PhysicalResourceId } from 'aws-cdk-lib/custom-resources';
-import { Construct } from 'constructs';
-import { ApiConstruct } from './api-construct';
-import { AuthConstruct, AuthConstructProps } from './auth-construct';
-import { DatabaseConstruct, DatabaseConstructProps } from './database-construct';
-import { FrontendConstruct } from './frontend-construct';
+import { RemovalPolicy, Stack, Tags } from "aws-cdk-lib";
+import { Certificate, ICertificate } from "aws-cdk-lib/aws-certificatemanager";
+import { Attribute } from "aws-cdk-lib/aws-dynamodb";
+import { PolicyStatement } from "aws-cdk-lib/aws-iam";
+import { IVersion, Version } from "aws-cdk-lib/aws-lambda";
+import { AwsCustomResource, AwsCustomResourcePolicy, PhysicalResourceId } from "aws-cdk-lib/custom-resources";
+import { Construct } from "constructs";
+import { ApiConstruct } from "./api-construct";
+import { AuthConstruct, AuthConstructProps } from "./auth-construct";
+import { DatabaseConstruct, DatabaseConstructProps } from "./database-construct";
+import { FrontendConstruct } from "./frontend-construct";
 
 // ============================================================================
 // Base Types for Advanced Customization
@@ -615,8 +615,8 @@ export class ServerlessSpaConstruct extends Construct {
 
     // Create AwsCustomResource for cross-region SSM parameter retrieval if security config is provided
     if (props?.security) {
-      const ssmPrefix = props.security.ssmPrefix ?? '/myapp/security/';
-      const securityRegion = props.security.securityRegion ?? 'us-east-1';
+      const ssmPrefix = props.security.ssmPrefix ?? "/myapp/security/";
+      const securityRegion = props.security.securityRegion ?? "us-east-1";
 
       // SSM parameter ARN pattern for least-privilege access
       const ssmParameterArnPattern = `arn:aws:ssm:${securityRegion}:${Stack.of(this).account}:parameter${ssmPrefix}*`;
@@ -624,8 +624,8 @@ export class ServerlessSpaConstruct extends Construct {
       // Create individual AwsCustomResource for each SSM parameter
       const createSsmReader = (readerId: string, paramName: string): AwsCustomResource => {
         const call = {
-          service: 'SSM',
-          action: 'getParameter',
+          service: "SSM",
+          action: "getParameter",
           parameters: {
             Name: `${ssmPrefix}${paramName}`,
           },
@@ -637,7 +637,7 @@ export class ServerlessSpaConstruct extends Construct {
           onUpdate: call,
           policy: AwsCustomResourcePolicy.fromStatements([
             new PolicyStatement({
-              actions: ['ssm:GetParameter'],
+              actions: ["ssm:GetParameter"],
               resources: [ssmParameterArnPattern],
             }),
           ]),
@@ -646,41 +646,41 @@ export class ServerlessSpaConstruct extends Construct {
 
       // Create WAF/secret/edge SSM readers only when not in certificateOnly mode
       if (!props.security._certificateOnly) {
-        const wafAclReader = createSsmReader('SsmWafAclArn', 'waf-acl-arn');
-        const headerNameReader = createSsmReader('SsmCustomHeaderName', 'custom-header-name');
-        const secretArnReader = createSsmReader('SsmSecretArn', 'secret-arn');
-        const edgeFnReader = createSsmReader('SsmEdgeFunctionVersionArn', 'edge-function-version-arn');
+        const wafAclReader = createSsmReader("SsmWafAclArn", "waf-acl-arn");
+        const headerNameReader = createSsmReader("SsmCustomHeaderName", "custom-header-name");
+        const secretArnReader = createSsmReader("SsmSecretArn", "secret-arn");
+        const edgeFnReader = createSsmReader("SsmEdgeFunctionVersionArn", "edge-function-version-arn");
 
         this.ssmParameterReader = wafAclReader;
 
-        this.webAclArn = wafAclReader.getResponseField('Parameter.Value');
-        this.securityCustomHeaderName = headerNameReader.getResponseField('Parameter.Value');
-        this.secretArn = secretArnReader.getResponseField('Parameter.Value');
-        this.edgeFunctionVersionArn = edgeFnReader.getResponseField('Parameter.Value');
+        this.webAclArn = wafAclReader.getResponseField("Parameter.Value");
+        this.securityCustomHeaderName = headerNameReader.getResponseField("Parameter.Value");
+        this.secretArn = secretArnReader.getResponseField("Parameter.Value");
+        this.edgeFunctionVersionArn = edgeFnReader.getResponseField("Parameter.Value");
       }
 
       // Read certificate ARN from SSM when frontend has a custom domain
       if (props?.frontend?.domainName) {
-        const certArnReader = createSsmReader('SsmCertificateArn', 'certificate-arn');
-        this.certificateArn = certArnReader.getResponseField('Parameter.Value');
-        this.certificate = Certificate.fromCertificateArn(this, 'SsmCertificate', this.certificateArn);
+        const certArnReader = createSsmReader("SsmCertificateArn", "certificate-arn");
+        this.certificateArn = certArnReader.getResponseField("Parameter.Value");
+        this.certificate = Certificate.fromCertificateArn(this, "SsmCertificate", this.certificateArn);
       }
     }
 
     // Create DatabaseConstruct
-    this.database = new DatabaseConstruct(this, 'Database', {
+    this.database = new DatabaseConstruct(this, "Database", {
       ...props?.database,
       ...(removalPolicy !== undefined && { removalPolicy }),
     });
 
     // Create AuthConstruct
-    this.auth = new AuthConstruct(this, 'Auth', {
+    this.auth = new AuthConstruct(this, "Auth", {
       ...props?.auth,
     });
 
     // Create ApiConstruct with auto-wired dependencies
-    this.api = new ApiConstruct(this, 'Api', {
-      entry: props?.api?.entry ?? '',
+    this.api = new ApiConstruct(this, "Api", {
+      entry: props?.api?.entry ?? "",
       table: this.database.table,
       userPool: this.auth.userPool,
       userPoolClientId: this.auth.userPoolClientId,
@@ -691,7 +691,7 @@ export class ServerlessSpaConstruct extends Construct {
     });
 
     // Create FrontendConstruct with auto-wired dependencies
-    this.frontend = new FrontendConstruct(this, 'Frontend', {
+    this.frontend = new FrontendConstruct(this, "Frontend", {
       api: this.api.api,
       customHeaderName: this.api.customHeaderName,
       domainName: props?.frontend?.domainName,
@@ -706,7 +706,7 @@ export class ServerlessSpaConstruct extends Construct {
       ...(props?.security && { webAclArn: this.webAclArn }),
       ...(props?.security &&
         this.edgeFunctionVersionArn && {
-          edgeFunctionVersion: Version.fromVersionArn(this, 'EdgeFunctionVersion', this.edgeFunctionVersionArn),
+          edgeFunctionVersion: Version.fromVersionArn(this, "EdgeFunctionVersion", this.edgeFunctionVersionArn),
         }),
       ...(this.certificate && { certificate: this.certificate }),
     });

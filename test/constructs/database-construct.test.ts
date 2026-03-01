@@ -1,158 +1,158 @@
-import { App, RemovalPolicy, Stack } from 'aws-cdk-lib';
-import { Match, Template } from 'aws-cdk-lib/assertions';
-import { AttributeType, BillingMode } from 'aws-cdk-lib/aws-dynamodb';
-import { DatabaseConstruct } from '../../src/constructs/database-construct';
+import { App, RemovalPolicy, Stack } from "aws-cdk-lib";
+import { Match, Template } from "aws-cdk-lib/assertions";
+import { AttributeType, BillingMode } from "aws-cdk-lib/aws-dynamodb";
+import { DatabaseConstruct } from "../../src/constructs/database-construct";
 
-describe('DatabaseConstruct', () => {
+describe("DatabaseConstruct", () => {
   let app: App;
   let stack: Stack;
 
   beforeEach(() => {
     app = new App();
-    stack = new Stack(app, 'TestStack');
+    stack = new Stack(app, "TestStack");
   });
 
-  describe('Default settings', () => {
-    test('creates table with default PK (string type)', () => {
-      new DatabaseConstruct(stack, 'Database');
+  describe("Default settings", () => {
+    test("creates table with default PK (string type)", () => {
+      new DatabaseConstruct(stack, "Database");
       const template = Template.fromStack(stack);
-      template.hasResourceProperties('AWS::DynamoDB::Table', {
-        KeySchema: Match.arrayWith([{ AttributeName: 'PK', KeyType: 'HASH' }]),
-        AttributeDefinitions: Match.arrayWith([{ AttributeName: 'PK', AttributeType: 'S' }]),
+      template.hasResourceProperties("AWS::DynamoDB::Table", {
+        KeySchema: Match.arrayWith([{ AttributeName: "PK", KeyType: "HASH" }]),
+        AttributeDefinitions: Match.arrayWith([{ AttributeName: "PK", AttributeType: "S" }]),
       });
     });
 
-    test('creates table with default SK (string type)', () => {
-      new DatabaseConstruct(stack, 'Database');
+    test("creates table with default SK (string type)", () => {
+      new DatabaseConstruct(stack, "Database");
       const template = Template.fromStack(stack);
-      template.hasResourceProperties('AWS::DynamoDB::Table', {
-        KeySchema: Match.arrayWith([{ AttributeName: 'SK', KeyType: 'RANGE' }]),
-        AttributeDefinitions: Match.arrayWith([{ AttributeName: 'SK', AttributeType: 'S' }]),
+      template.hasResourceProperties("AWS::DynamoDB::Table", {
+        KeySchema: Match.arrayWith([{ AttributeName: "SK", KeyType: "RANGE" }]),
+        AttributeDefinitions: Match.arrayWith([{ AttributeName: "SK", AttributeType: "S" }]),
       });
     });
 
-    test('creates table with PAY_PER_REQUEST billing mode', () => {
-      new DatabaseConstruct(stack, 'Database');
+    test("creates table with PAY_PER_REQUEST billing mode", () => {
+      new DatabaseConstruct(stack, "Database");
       const template = Template.fromStack(stack);
-      template.hasResourceProperties('AWS::DynamoDB::Table', {
-        BillingMode: 'PAY_PER_REQUEST',
+      template.hasResourceProperties("AWS::DynamoDB::Table", {
+        BillingMode: "PAY_PER_REQUEST",
       });
     });
 
-    test('creates table with default removal policy (Retain)', () => {
-      new DatabaseConstruct(stack, 'Database');
+    test("creates table with default removal policy (Retain)", () => {
+      new DatabaseConstruct(stack, "Database");
       const template = Template.fromStack(stack);
-      template.hasResource('AWS::DynamoDB::Table', {
-        DeletionPolicy: 'Retain',
-        UpdateReplacePolicy: 'Retain',
+      template.hasResource("AWS::DynamoDB::Table", {
+        DeletionPolicy: "Retain",
+        UpdateReplacePolicy: "Retain",
       });
     });
   });
 
-  describe('Custom key settings', () => {
-    test('applies custom partitionKey', () => {
-      new DatabaseConstruct(stack, 'Database', {
-        partitionKey: { name: 'userId', type: AttributeType.STRING },
+  describe("Custom key settings", () => {
+    test("applies custom partitionKey", () => {
+      new DatabaseConstruct(stack, "Database", {
+        partitionKey: { name: "userId", type: AttributeType.STRING },
       });
       const template = Template.fromStack(stack);
-      template.hasResourceProperties('AWS::DynamoDB::Table', {
-        KeySchema: Match.arrayWith([{ AttributeName: 'userId', KeyType: 'HASH' }]),
-        AttributeDefinitions: Match.arrayWith([{ AttributeName: 'userId', AttributeType: 'S' }]),
+      template.hasResourceProperties("AWS::DynamoDB::Table", {
+        KeySchema: Match.arrayWith([{ AttributeName: "userId", KeyType: "HASH" }]),
+        AttributeDefinitions: Match.arrayWith([{ AttributeName: "userId", AttributeType: "S" }]),
       });
     });
 
-    test('applies custom sortKey', () => {
-      new DatabaseConstruct(stack, 'Database', {
-        sortKey: { name: 'timestamp', type: AttributeType.NUMBER },
+    test("applies custom sortKey", () => {
+      new DatabaseConstruct(stack, "Database", {
+        sortKey: { name: "timestamp", type: AttributeType.NUMBER },
       });
       const template = Template.fromStack(stack);
-      template.hasResourceProperties('AWS::DynamoDB::Table', {
-        KeySchema: Match.arrayWith([{ AttributeName: 'timestamp', KeyType: 'RANGE' }]),
-        AttributeDefinitions: Match.arrayWith([{ AttributeName: 'timestamp', AttributeType: 'N' }]),
+      template.hasResourceProperties("AWS::DynamoDB::Table", {
+        KeySchema: Match.arrayWith([{ AttributeName: "timestamp", KeyType: "RANGE" }]),
+        AttributeDefinitions: Match.arrayWith([{ AttributeName: "timestamp", AttributeType: "N" }]),
       });
     });
 
-    test('creates table without sort key when disableSortKey is true', () => {
-      new DatabaseConstruct(stack, 'Database', {
+    test("creates table without sort key when disableSortKey is true", () => {
+      new DatabaseConstruct(stack, "Database", {
         disableSortKey: true,
       });
       const template = Template.fromStack(stack);
-      template.hasResourceProperties('AWS::DynamoDB::Table', {
-        KeySchema: [{ AttributeName: 'PK', KeyType: 'HASH' }],
+      template.hasResourceProperties("AWS::DynamoDB::Table", {
+        KeySchema: [{ AttributeName: "PK", KeyType: "HASH" }],
       });
     });
   });
 
-  describe('GSI and explicit props', () => {
-    test('adds GSI when globalSecondaryIndexes is specified', () => {
-      new DatabaseConstruct(stack, 'Database', {
+  describe("GSI and explicit props", () => {
+    test("adds GSI when globalSecondaryIndexes is specified", () => {
+      new DatabaseConstruct(stack, "Database", {
         globalSecondaryIndexes: [
           {
-            indexName: 'GSI1',
-            partitionKey: { name: 'GSI1PK', type: AttributeType.STRING },
-            sortKey: { name: 'GSI1SK', type: AttributeType.STRING },
+            indexName: "GSI1",
+            partitionKey: { name: "GSI1PK", type: AttributeType.STRING },
+            sortKey: { name: "GSI1SK", type: AttributeType.STRING },
           },
         ],
       });
       const template = Template.fromStack(stack);
-      template.hasResourceProperties('AWS::DynamoDB::Table', {
+      template.hasResourceProperties("AWS::DynamoDB::Table", {
         GlobalSecondaryIndexes: Match.arrayWith([
           Match.objectLike({
-            IndexName: 'GSI1',
+            IndexName: "GSI1",
             KeySchema: [
-              { AttributeName: 'GSI1PK', KeyType: 'HASH' },
-              { AttributeName: 'GSI1SK', KeyType: 'RANGE' },
+              { AttributeName: "GSI1PK", KeyType: "HASH" },
+              { AttributeName: "GSI1SK", KeyType: "RANGE" },
             ],
           }),
         ]),
       });
     });
 
-    test('overrides billing mode with explicit billingMode prop', () => {
-      new DatabaseConstruct(stack, 'Database', {
+    test("overrides billing mode with explicit billingMode prop", () => {
+      new DatabaseConstruct(stack, "Database", {
         billingMode: BillingMode.PROVISIONED,
       });
       const template = Template.fromStack(stack);
-      template.hasResourceProperties('AWS::DynamoDB::Table', {
+      template.hasResourceProperties("AWS::DynamoDB::Table", {
         BillingMode: Match.absent(),
         ProvisionedThroughput: Match.anyValue(),
       });
     });
 
-    test('overrides removal policy with explicit removalPolicy prop', () => {
-      new DatabaseConstruct(stack, 'Database', {
+    test("overrides removal policy with explicit removalPolicy prop", () => {
+      new DatabaseConstruct(stack, "Database", {
         removalPolicy: RemovalPolicy.RETAIN,
       });
       const template = Template.fromStack(stack);
-      template.hasResource('AWS::DynamoDB::Table', {
-        DeletionPolicy: 'Retain',
-        UpdateReplacePolicy: 'Retain',
+      template.hasResource("AWS::DynamoDB::Table", {
+        DeletionPolicy: "Retain",
+        UpdateReplacePolicy: "Retain",
       });
     });
   });
 
-  describe('Output properties', () => {
-    test('exposes table property as Table', () => {
-      const construct = new DatabaseConstruct(stack, 'Database');
+  describe("Output properties", () => {
+    test("exposes table property as Table", () => {
+      const construct = new DatabaseConstruct(stack, "Database");
       expect(construct.table).toBeDefined();
       expect(construct.table.tableName).toBeDefined();
       expect(construct.table.tableArn).toBeDefined();
     });
 
-    test('exposes tableName property', () => {
-      const construct = new DatabaseConstruct(stack, 'Database');
+    test("exposes tableName property", () => {
+      const construct = new DatabaseConstruct(stack, "Database");
       expect(construct.tableName).toBeDefined();
-      expect(typeof construct.tableName).toBe('string');
+      expect(typeof construct.tableName).toBe("string");
     });
 
-    test('exposes tableArn property', () => {
-      const construct = new DatabaseConstruct(stack, 'Database');
+    test("exposes tableArn property", () => {
+      const construct = new DatabaseConstruct(stack, "Database");
       expect(construct.tableArn).toBeDefined();
-      expect(typeof construct.tableArn).toBe('string');
+      expect(typeof construct.tableArn).toBe("string");
     });
 
-    test('tableName and tableArn match the created table', () => {
-      const construct = new DatabaseConstruct(stack, 'Database');
+    test("tableName and tableArn match the created table", () => {
+      const construct = new DatabaseConstruct(stack, "Database");
       expect(construct.tableName).toBe(construct.table.tableName);
       expect(construct.tableArn).toBe(construct.table.tableArn);
     });

@@ -1,6 +1,6 @@
-import { RemovalPolicy } from 'aws-cdk-lib';
-import { RestApi } from 'aws-cdk-lib/aws-apigateway';
-import { ICertificate } from 'aws-cdk-lib/aws-certificatemanager';
+import { RemovalPolicy } from "aws-cdk-lib";
+import { RestApi } from "aws-cdk-lib/aws-apigateway";
+import { ICertificate } from "aws-cdk-lib/aws-certificatemanager";
 import {
   AllowedMethods,
   CachePolicy,
@@ -14,13 +14,13 @@ import {
   OriginRequestPolicy,
   PriceClass,
   ViewerProtocolPolicy,
-} from 'aws-cdk-lib/aws-cloudfront';
-import { RestApiOrigin, S3BucketOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
-import { IVersion } from 'aws-cdk-lib/aws-lambda';
-import { ARecord, HostedZone, IHostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
-import { CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
-import { BlockPublicAccess, Bucket, IBucket } from 'aws-cdk-lib/aws-s3';
-import { Construct } from 'constructs';
+} from "aws-cdk-lib/aws-cloudfront";
+import { RestApiOrigin, S3BucketOrigin } from "aws-cdk-lib/aws-cloudfront-origins";
+import { IVersion } from "aws-cdk-lib/aws-lambda";
+import { ARecord, HostedZone, IHostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
+import { CloudFrontTarget } from "aws-cdk-lib/aws-route53-targets";
+import { BlockPublicAccess, Bucket, IBucket } from "aws-cdk-lib/aws-s3";
+import { Construct } from "constructs";
 
 /**
  * Properties for FrontendConstruct.
@@ -152,22 +152,22 @@ export class FrontendConstruct extends Construct {
     // Validate custom domain configuration
     if (props?.domainName && !props?.certificate) {
       throw new Error(
-        'certificate is required when domainName is provided. ' +
-          'CloudFront requires an ACM certificate in us-east-1. ' +
-          'Use ServerlessSpaSecurityConstruct.withCertificate() or withWafAndCertificate() ' +
-          'to create a certificate in us-east-1, or provide an externally created certificate.',
+        "certificate is required when domainName is provided. " +
+          "CloudFront requires an ACM certificate in us-east-1. " +
+          "Use ServerlessSpaSecurityConstruct.withCertificate() or withWafAndCertificate() " +
+          "to create a certificate in us-east-1, or provide an externally created certificate.",
       );
     }
 
     // Validate hostedZoneId and zoneName are provided together
     if ((props?.hostedZoneId && !props?.zoneName) || (!props?.hostedZoneId && props?.zoneName)) {
-      throw new Error('Both hostedZoneId and zoneName must be provided together.');
+      throw new Error("Both hostedZoneId and zoneName must be provided together.");
     }
 
     // Look up hosted zone if hostedZoneId and zoneName are provided
     let hostedZone: IHostedZone | undefined;
     if (props?.hostedZoneId && props?.zoneName) {
-      hostedZone = HostedZone.fromHostedZoneAttributes(this, 'HostedZone', {
+      hostedZone = HostedZone.fromHostedZoneAttributes(this, "HostedZone", {
         hostedZoneId: props.hostedZoneId,
         zoneName: props.zoneName,
       });
@@ -179,11 +179,11 @@ export class FrontendConstruct extends Construct {
 
     // Set custom header name only when api is provided
     if (props?.api) {
-      this.customHeaderName = props.customHeaderName ?? 'x-origin-verify';
+      this.customHeaderName = props.customHeaderName ?? "x-origin-verify";
     }
 
     // Create S3 bucket with secure defaults
-    const bucket = new Bucket(this, 'Bucket', {
+    const bucket = new Bucket(this, "Bucket", {
       blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
       publicReadAccess: false,
       removalPolicy: props?.removalPolicy,
@@ -195,7 +195,7 @@ export class FrontendConstruct extends Construct {
     // Create CloudFront Function for SPA routing
     // Rewrites paths without extensions to /index.html
     // Passes through paths with extensions (e.g., .css, .js, .png)
-    const spaRoutingFunction = new CloudFrontFunction(this, 'SpaRoutingFunction', {
+    const spaRoutingFunction = new CloudFrontFunction(this, "SpaRoutingFunction", {
       code: FunctionCode.fromInline(
         `
 function handler(event) {
@@ -227,7 +227,7 @@ function handler(event) {
 
     // Create CloudFront distribution with S3 origin using OAC
     // Build additional behaviors for API Gateway routing if api is provided
-    const additionalBehaviors: DistributionProps['additionalBehaviors'] = {};
+    const additionalBehaviors: DistributionProps["additionalBehaviors"] = {};
 
     if (props?.api) {
       // Create RestApiOrigin for API Gateway
@@ -238,7 +238,7 @@ function handler(event) {
       const useEdgeFunction = !!props.edgeFunctionVersion;
 
       // Add /api/* behavior for API Gateway routing
-      additionalBehaviors['/api/*'] = {
+      additionalBehaviors["/api/*"] = {
         origin: apiOrigin,
         allowedMethods: AllowedMethods.ALLOW_ALL,
         viewerProtocolPolicy: ViewerProtocolPolicy.HTTPS_ONLY,
@@ -265,7 +265,7 @@ function handler(event) {
       domainNames.push(...props.alternativeDomainNames);
     }
 
-    const distribution = new Distribution(this, 'Distribution', {
+    const distribution = new Distribution(this, "Distribution", {
       defaultBehavior: {
         origin: S3BucketOrigin.withOriginAccessControl(bucket),
         functionAssociations: [
@@ -276,7 +276,7 @@ function handler(event) {
         ],
       },
       additionalBehaviors,
-      defaultRootObject: 'index.html',
+      defaultRootObject: "index.html",
       priceClass: PriceClass.PRICE_CLASS_100,
       // Apply WAF WebACL if provided
       ...(props?.webAclArn && { webAclId: props.webAclArn }),
@@ -291,7 +291,7 @@ function handler(event) {
 
     // Create Route53 A record if hostedZone and domainName are provided
     if (hostedZone && props?.domainName) {
-      this.dnsRecord = new ARecord(this, 'DnsRecord', {
+      this.dnsRecord = new ARecord(this, "DnsRecord", {
         zone: hostedZone,
         recordName: props.domainName,
         target: RecordTarget.fromAlias(new CloudFrontTarget(distribution)),

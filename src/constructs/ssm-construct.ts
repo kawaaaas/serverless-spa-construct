@@ -1,10 +1,10 @@
-import { IStringParameter, StringParameter } from 'aws-cdk-lib/aws-ssm';
-import { Construct } from 'constructs';
+import { IStringParameter, StringParameter } from "aws-cdk-lib/aws-ssm";
+import { Construct } from "constructs";
 
 /**
  * Default SSM prefix for parameters.
  */
-const DEFAULT_SSM_PREFIX = '/myapp/security/';
+const DEFAULT_SSM_PREFIX = "/myapp/security/";
 
 /**
  * Properties for SsmConstruct.
@@ -117,46 +117,46 @@ export class SsmConstruct extends Construct {
 
     // Create SSM Parameter for WAF ACL ARN (if provided)
     if (props.webAclArn) {
-      this.wafAclArnParameter = new StringParameter(this, 'WafAclArnParameter', {
+      this.wafAclArnParameter = new StringParameter(this, "WafAclArnParameter", {
         parameterName: `${this.ssmPrefix}waf-acl-arn`,
         stringValue: props.webAclArn,
-        description: 'WAF WebACL ARN for CloudFront',
+        description: "WAF WebACL ARN for CloudFront",
       });
     }
 
     // Create SSM Parameter for custom header name (if provided)
     if (props.customHeaderName) {
-      this.customHeaderNameParameter = new StringParameter(this, 'CustomHeaderNameParameter', {
+      this.customHeaderNameParameter = new StringParameter(this, "CustomHeaderNameParameter", {
         parameterName: `${this.ssmPrefix}custom-header-name`,
         stringValue: props.customHeaderName,
-        description: 'Custom header name for API Gateway validation',
+        description: "Custom header name for API Gateway validation",
       });
     }
 
     // Create SSM Parameter for secret ARN (if provided)
     if (props.secretArn) {
-      this.secretArnParameter = new StringParameter(this, 'SecretArnParameter', {
+      this.secretArnParameter = new StringParameter(this, "SecretArnParameter", {
         parameterName: `${this.ssmPrefix}secret-arn`,
         stringValue: props.secretArn,
-        description: 'Secrets Manager secret ARN for custom header value',
+        description: "Secrets Manager secret ARN for custom header value",
       });
     }
 
     // Create SSM Parameter for Lambda@Edge function version ARN (if provided)
     if (props.edgeFunctionVersionArn) {
-      this.edgeFunctionVersionArnParameter = new StringParameter(this, 'EdgeFunctionVersionArnParameter', {
+      this.edgeFunctionVersionArnParameter = new StringParameter(this, "EdgeFunctionVersionArnParameter", {
         parameterName: `${this.ssmPrefix}edge-function-version-arn`,
         stringValue: props.edgeFunctionVersionArn,
-        description: 'Lambda@Edge function version ARN for CloudFront origin request',
+        description: "Lambda@Edge function version ARN for CloudFront origin request",
       });
     }
 
     // Create SSM Parameter for ACM certificate ARN (if provided)
     if (props.certificateArn) {
-      this.certificateArnParameter = new StringParameter(this, 'CertificateArnParameter', {
+      this.certificateArnParameter = new StringParameter(this, "CertificateArnParameter", {
         parameterName: `${this.ssmPrefix}certificate-arn`,
         stringValue: props.certificateArn,
-        description: 'ACM certificate ARN for CloudFront custom domain',
+        description: "ACM certificate ARN for CloudFront custom domain",
       });
     }
   }

@@ -1,6 +1,6 @@
-import { RemovalPolicy } from 'aws-cdk-lib';
-import { Attribute, AttributeType, BillingMode, GlobalSecondaryIndexProps, Table } from 'aws-cdk-lib/aws-dynamodb';
-import { Construct } from 'constructs';
+import { RemovalPolicy } from "aws-cdk-lib";
+import { Attribute, AttributeType, BillingMode, GlobalSecondaryIndexProps, Table } from "aws-cdk-lib/aws-dynamodb";
+import { Construct } from "constructs";
 
 /**
  * Properties for DatabaseConstruct.
@@ -86,7 +86,7 @@ export class DatabaseConstruct extends Construct {
 
     // Default partition key: PK (String)
     const partitionKey: Attribute = props?.partitionKey ?? {
-      name: 'PK',
+      name: "PK",
       type: AttributeType.STRING,
     };
 
@@ -94,12 +94,12 @@ export class DatabaseConstruct extends Construct {
     const sortKey: Attribute | undefined = props?.disableSortKey
       ? undefined
       : (props?.sortKey ?? {
-          name: 'SK',
+          name: "SK",
           type: AttributeType.STRING,
         });
 
     // Create the DynamoDB table
-    const table = new Table(this, 'Table', {
+    const table = new Table(this, "Table", {
       tableName: props?.tableName,
       partitionKey,
       sortKey,

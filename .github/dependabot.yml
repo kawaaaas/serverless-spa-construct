@@ -1,43 +1,5 @@
 version: 2
 updates:
-  - package-ecosystem: npm
-    directory: /
-    schedule:
-      interval: weekly
-      day: monday
-    open-pull-requests-limit: 10
-    labels:
-      - dependencies
-    commit-message:
-      prefix: 'chore(deps):'
-    groups:
-      aws-cdk:
-        patterns:
-          - 'aws-cdk-lib'
-          - '@aws-cdk/*'
-        update-types:
-          - minor
-          - patch
-      aws-sdk:
-        patterns:
-          - '@aws-sdk/*'
-        update-types:
-          - minor
-          - patch
-      typescript-eslint:
-        patterns:
-          - '@typescript-eslint/*'
-      jest:
-        patterns:
-          - 'jest'
-          - 'jest-*'
-          - 'ts-jest'
-          - '@types/jest'
-      jsii:
-        patterns:
-          - 'jsii'
-          - 'jsii-*'
-
   - package-ecosystem: github-actions
     directory: /
     schedule:

@@ -1,10 +1,10 @@
-import { RemovalPolicy, Stack, Token } from 'aws-cdk-lib';
-import { Construct } from 'constructs';
-import { CertificateConstruct } from './certificate-construct';
-import { LambdaEdgeConstruct } from './lambda-edge-construct';
-import { SecretConstruct } from './secret-construct';
-import { SsmConstruct } from './ssm-construct';
-import { WafConstruct, WafConstructProps } from './waf-construct';
+import { RemovalPolicy, Stack, Token } from "aws-cdk-lib";
+import { Construct } from "constructs";
+import { CertificateConstruct } from "./certificate-construct";
+import { LambdaEdgeConstruct } from "./lambda-edge-construct";
+import { SecretConstruct } from "./secret-construct";
+import { SsmConstruct } from "./ssm-construct";
+import { WafConstruct, WafConstructProps } from "./waf-construct";
 
 // ============================================================================
 // Base Types for Advanced Customization
@@ -447,19 +447,19 @@ export class ServerlessSpaSecurityConstruct extends Construct {
 
     // Validate region is us-east-1
     const region = Stack.of(this).region;
-    if (region !== 'us-east-1' && !Token.isUnresolved(region)) {
+    if (region !== "us-east-1" && !Token.isUnresolved(region)) {
       throw new Error(`ServerlessSpaSecurityConstruct must be deployed in us-east-1 region. Current region: ${region}`);
     }
 
     // Determine the SSM prefix (used by multiple constructs)
-    const ssmPrefix = props?.ssmPrefix ?? '/myapp/security/';
+    const ssmPrefix = props?.ssmPrefix ?? "/myapp/security/";
     const removalPolicy = props?.removalPolicy ?? RemovalPolicy.DESTROY;
     const enableWaf = props?.enableWaf ?? true;
     const enableCustomHeader = props?.enableCustomHeader ?? true;
 
     // Conditionally create WafConstruct
     if (enableWaf) {
-      this.waf = new WafConstruct(this, 'Waf', {
+      this.waf = new WafConstruct(this, "Waf", {
         rateLimit: props?.waf?.rateLimit,
         removalPolicy: props?.waf?.removalPolicy ?? removalPolicy,
       });
@@ -469,7 +469,7 @@ export class ServerlessSpaSecurityConstruct extends Construct {
     // Conditionally create SecretConstruct and LambdaEdgeConstruct
     if (enableCustomHeader) {
       // Create SecretConstruct with auto-wired ssmPrefix and replicaRegions
-      this.secret = new SecretConstruct(this, 'Secret', {
+      this.secret = new SecretConstruct(this, "Secret", {
         customHeaderName: props?.secret?.customHeaderName,
         rotationDays: props?.secret?.rotationDays,
         ssmPrefix: ssmPrefix, // Auto-wired from ssmPrefix
@@ -478,7 +478,7 @@ export class ServerlessSpaSecurityConstruct extends Construct {
       });
 
       // Create LambdaEdgeConstruct with auto-wired secretName
-      this.lambdaEdge = new LambdaEdgeConstruct(this, 'LambdaEdge', {
+      this.lambdaEdge = new LambdaEdgeConstruct(this, "LambdaEdge", {
         secretName: this.secret.secretName, // Auto-wired from SecretConstruct (plain string, not token)
         customHeaderName: this.secret.customHeaderName, // Auto-wired from SecretConstruct
         cacheTtlSeconds: props?.edgeCacheTtlSeconds,
@@ -494,10 +494,10 @@ export class ServerlessSpaSecurityConstruct extends Construct {
     const enableCertificate = props?.enableCertificate ?? false;
     if (enableCertificate) {
       if (!props?.domainName || !props?.hostedZoneId || !props?.zoneName) {
-        throw new Error('domainName, hostedZoneId, and zoneName are required when enableCertificate is true');
+        throw new Error("domainName, hostedZoneId, and zoneName are required when enableCertificate is true");
       }
 
-      this.certificateConstruct = new CertificateConstruct(this, 'Certificate', {
+      this.certificateConstruct = new CertificateConstruct(this, "Certificate", {
         domainName: props.domainName,
         hostedZoneId: props.hostedZoneId,
         zoneName: props.zoneName,
@@ -507,7 +507,7 @@ export class ServerlessSpaSecurityConstruct extends Construct {
     }
 
     // Create SsmConstruct with auto-wired values from other constructs
-    this.ssm = new SsmConstruct(this, 'Ssm', {
+    this.ssm = new SsmConstruct(this, "Ssm", {
       ssmPrefix: ssmPrefix,
       webAclArn: this.webAclArn, // Auto-wired from WafConstruct (if enabled)
       customHeaderName: this.customHeaderName, // Auto-wired from SecretConstruct (if enabled)

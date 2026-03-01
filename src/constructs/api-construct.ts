@@ -1,4 +1,4 @@
-import { Arn, ArnFormat, Duration, Stack } from 'aws-cdk-lib';
+import { Arn, ArnFormat, Duration, Stack } from "aws-cdk-lib";
 import {
   AuthorizationType,
   CognitoUserPoolsAuthorizer,
@@ -8,14 +8,14 @@ import {
   MethodOptions,
   RequestAuthorizer,
   RestApi,
-} from 'aws-cdk-lib/aws-apigateway';
-import { IUserPool } from 'aws-cdk-lib/aws-cognito';
-import { Table } from 'aws-cdk-lib/aws-dynamodb';
-import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
-import { IFunction, Runtime } from 'aws-cdk-lib/aws-lambda';
-import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
-import { Construct } from 'constructs';
-import { resolveEntry } from './resolve-entry';
+} from "aws-cdk-lib/aws-apigateway";
+import { IUserPool } from "aws-cdk-lib/aws-cognito";
+import { Table } from "aws-cdk-lib/aws-dynamodb";
+import { PolicyStatement } from "aws-cdk-lib/aws-iam";
+import { IFunction, Runtime } from "aws-cdk-lib/aws-lambda";
+import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
+import { Construct } from "constructs";
+import { resolveEntry } from "./resolve-entry";
 
 /**
  * Properties for ApiConstruct.
@@ -115,18 +115,18 @@ export class ApiConstruct extends Construct {
     super(scope, id);
 
     // Set custom header name
-    this.customHeaderName = props.customHeaderName ?? 'x-origin-verify';
+    this.customHeaderName = props.customHeaderName ?? "x-origin-verify";
 
     // Determine Lambda entry point
     const entry = props.entry;
 
     // Create Lambda function
-    const lambdaHandler = new NodejsFunction(this, 'Handler', {
-      runtime: Runtime.NODEJS_20_X,
+    const lambdaHandler = new NodejsFunction(this, "Handler", {
+      runtime: Runtime.NODEJS_22_X,
       memorySize: 128,
       timeout: Duration.seconds(30),
       entry,
-      handler: 'handler',
+      handler: "handler",
       environment: {
         TABLE_NAME: props.table.tableName,
       },
@@ -139,7 +139,7 @@ export class ApiConstruct extends Construct {
     if (props.secretArn) {
       lambdaHandler.addToRolePolicy(
         new PolicyStatement({
-          actions: ['secretsmanager:GetSecretValue', 'secretsmanager:DescribeSecret'],
+          actions: ["secretsmanager:GetSecretValue", "secretsmanager:DescribeSecret"],
           resources: [props.secretArn],
         }),
       );
@@ -148,7 +148,7 @@ export class ApiConstruct extends Construct {
     this.handler = lambdaHandler;
 
     // Create REST API
-    const restApi = new RestApi(this, 'RestApi', {
+    const restApi = new RestApi(this, "RestApi", {
       defaultCorsPreflightOptions: {
         allowOrigins: Cors.ALL_ORIGINS,
         allowMethods: Cors.ALL_METHODS,
@@ -190,25 +190,25 @@ export class ApiConstruct extends Construct {
 
         // Client ID is required for JWT validation
         if (!props.userPoolClientId) {
-          throw new Error('userPoolClientId is required when both userPool and secretArn are provided for Lambda Authorizer');
+          throw new Error("userPoolClientId is required when both userPool and secretArn are provided for Lambda Authorizer");
         }
         authorizerEnv.CLIENT_ID = props.userPoolClientId;
       }
 
       // Create Lambda Authorizer function
-      const authorizerHandler = new NodejsFunction(this, 'AuthorizerHandler', {
-        runtime: Runtime.NODEJS_20_X,
+      const authorizerHandler = new NodejsFunction(this, "AuthorizerHandler", {
+        runtime: Runtime.NODEJS_22_X,
         memorySize: 128,
         timeout: Duration.seconds(10),
-        entry: resolveEntry(__dirname, '../lambda/custom-header-authorizer'),
-        handler: 'handler',
+        entry: resolveEntry(__dirname, "../lambda/custom-header-authorizer"),
+        handler: "handler",
         environment: authorizerEnv,
       });
 
       // Grant Lambda Authorizer read access to Secrets Manager replica
       authorizerHandler.addToRolePolicy(
         new PolicyStatement({
-          actions: ['secretsmanager:GetSecretValue', 'secretsmanager:DescribeSecret'],
+          actions: ["secretsmanager:GetSecretValue", "secretsmanager:DescribeSecret"],
           resources: [localSecretArn],
         }),
       );
@@ -226,9 +226,9 @@ export class ApiConstruct extends Construct {
       // not as an identity source. Including it in identitySources would cause
       // API Gateway to reject requests before the Authorizer is invoked if the
       // header is missing from the initial request context.
-      const lambdaAuthorizer = new RequestAuthorizer(this, 'LambdaAuthorizer', {
+      const lambdaAuthorizer = new RequestAuthorizer(this, "LambdaAuthorizer", {
         handler: this.authorizerFunction,
-        identitySources: [IdentitySource.header('Authorization')],
+        identitySources: [IdentitySource.header("Authorization")],
         resultsCacheTtl: Duration.seconds(0), // Disable API Gateway caching, use Lambda caching
       });
 
@@ -238,7 +238,7 @@ export class ApiConstruct extends Construct {
       };
     } else if (props.userPool && !useLambdaAuthorizer) {
       // Cognito Authorizer only (when secretArn is not provided)
-      const cognitoAuthorizer = new CognitoUserPoolsAuthorizer(this, 'CognitoAuthorizer', {
+      const cognitoAuthorizer = new CognitoUserPoolsAuthorizer(this, "CognitoAuthorizer", {
         cognitoUserPools: [props.userPool],
       });
 
@@ -249,11 +249,11 @@ export class ApiConstruct extends Construct {
     }
 
     // Add ANY method to root path (/)
-    restApi.root.addMethod('ANY', lambdaIntegration, methodOptions);
+    restApi.root.addMethod("ANY", lambdaIntegration, methodOptions);
 
     // Add proxy resource ({proxy+}) with ANY method
-    const proxyResource = restApi.root.addResource('{proxy+}');
-    proxyResource.addMethod('ANY', lambdaIntegration, methodOptions);
+    const proxyResource = restApi.root.addResource("{proxy+}");
+    proxyResource.addMethod("ANY", lambdaIntegration, methodOptions);
   }
 
   /**

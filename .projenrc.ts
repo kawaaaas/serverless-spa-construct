@@ -1,28 +1,34 @@
-import { TextFile, awscdk, javascript } from 'projen';
+import { TextFile, awscdk, javascript } from "projen";
 const project = new awscdk.AwsCdkConstructLibrary({
-  author: 'kawaaaas',
-  authorAddress: 'dev.kawaaaas@gmail.com',
-  cdkVersion: '2.189.1',
-  defaultReleaseBranch: 'main',
-  jsiiVersion: '~5.9.0',
-  name: 'serverless-spa-construct',
+  author: "kawaaaas",
+  authorAddress: "dev.kawaaaas@gmail.com",
+  cdkVersion: "2.240.0",
+  defaultReleaseBranch: "main",
+  jsiiVersion: "~5.9.0",
+  name: "serverless-spa-construct",
   projenrcTs: true,
-  repositoryUrl: 'https://github.com/kawaaaas/serverless-spa-construct.git',
-  stability: 'experimental',
+  repositoryUrl: "https://github.com/kawaaaas/serverless-spa-construct.git",
+  stability: "experimental",
   majorVersion: 0,
 
-  description: 'A high-level AWS CDK construct for building serverless SPAs with DynamoDB, Cognito, API Gateway, S3, CloudFront, WAF, and more.',
+  description: "A high-level AWS CDK construct for building serverless SPAs with DynamoDB, Cognito, API Gateway, S3, CloudFront, WAF, and more.",
 
-  bundledDeps: ['aws-jwt-verify', '@aws-sdk/client-secrets-manager'],
+  depsUpgradeOptions: {
+    workflowOptions: {
+      schedule: javascript.UpgradeDependenciesSchedule.WEEKLY,
+    },
+  },
 
-  devDeps: ['@types/aws-lambda', '@aws-sdk/client-ssm', 'fast-check', 'esbuild', 'eslint-plugin-cdk', 'husky', 'lint-staged'],
+  bundledDeps: ["aws-jwt-verify", "@aws-sdk/client-secrets-manager"],
 
-  keywords: ['cdk', 'aws', 'serverless', 'spa', 'cloudfront', 'waf', 'cognito', 'dynamodb', 'apigateway'],
+  devDeps: ["@types/aws-lambda", "@aws-sdk/client-ssm", "fast-check", "esbuild", "eslint-plugin-cdk", "husky", "lint-staged"],
+
+  keywords: ["cdk", "aws", "serverless", "spa", "cloudfront", "waf", "cognito", "dynamodb", "apigateway"],
 
   prettier: true,
   prettierOptions: {
     settings: {
-      singleQuote: true,
+      singleQuote: false,
       semi: true,
       trailingComma: javascript.TrailingComma.ALL,
       tabWidth: 2,
@@ -32,61 +38,61 @@ const project = new awscdk.AwsCdkConstructLibrary({
 
   npmignoreEnabled: true,
   npmignore: [
-    '/.projen/',
-    '/test-reports/',
-    'junit.xml',
-    '/coverage/',
-    'permissions-backup.acl',
-    '/dist/changelog.md',
-    '/dist/version.txt',
-    '/.mergify.yml',
-    '/test/',
-    '/tsconfig.dev.json',
-    '/src/',
-    '!/lib/',
-    '!/lib/**/*.js',
-    '!/lib/**/*.d.ts',
-    '!/lambda/',
-    '!/lambda/**/*.js',
-    '!/lambda/**/*.d.ts',
-    'dist',
-    '/tsconfig.json',
-    '/.github/',
-    '/.vscode/',
-    '/.idea/',
-    '/.projenrc.js',
-    'tsconfig.tsbuildinfo',
-    '/.eslintrc.json',
-    '!.jsii',
-    '/.gitattributes',
-    '/.projenrc.ts',
-    '/projenrc',
-    '/.claude/',
-    '/.husky/',
-    '/scripts/',
-    '/tsconfig.lambda.json',
+    "/.projen/",
+    "/test-reports/",
+    "junit.xml",
+    "/coverage/",
+    "permissions-backup.acl",
+    "/dist/changelog.md",
+    "/dist/version.txt",
+    "/.mergify.yml",
+    "/test/",
+    "/tsconfig.dev.json",
+    "/src/",
+    "!/lib/",
+    "!/lib/**/*.js",
+    "!/lib/**/*.d.ts",
+    "!/lambda/",
+    "!/lambda/**/*.js",
+    "!/lambda/**/*.d.ts",
+    "dist",
+    "/tsconfig.json",
+    "/.github/",
+    "/.vscode/",
+    "/.idea/",
+    "/.projenrc.js",
+    "tsconfig.tsbuildinfo",
+    "/.eslintrc.json",
+    "!.jsii",
+    "/.gitattributes",
+    "/.projenrc.ts",
+    "/projenrc",
+    "/.claude/",
+    "/.husky/",
+    "/scripts/",
+    "/tsconfig.lambda.json",
   ],
 });
 
 // ESLint: add eslint-plugin-cdk
-project.eslint?.addPlugins('eslint-plugin-cdk');
+project.eslint?.addPlugins("eslint-plugin-cdk");
 project.eslint?.addRules({
-  'cdk/construct-ctor': ['error'],
-  'cdk/ban-lambda-runtimes': ['error'],
-  'cdk/no-static-import': ['warn'],
-  'cdk/stack-props-struct-name': ['error'],
-  'cdk/construct-props-struct-name': ['error'],
-  'cdk/prefer-type-only-imports': ['warn'],
-  'cdk/public-static-property-all-caps': ['error'],
-  'cdk/ban-reserved-words': ['error'],
+  "cdk/construct-ctor": ["error"],
+  "cdk/ban-lambda-runtimes": ["error"],
+  "cdk/no-static-import": ["warn"],
+  "cdk/stack-props-struct-name": ["error"],
+  "cdk/construct-props-struct-name": ["error"],
+  "cdk/prefer-type-only-imports": ["warn"],
+  "cdk/public-static-property-all-caps": ["error"],
+  "cdk/ban-reserved-words": ["error"],
 });
 
 // ESLint: allow devDependencies in Lambda handler source (compiled separately from jsii library)
 project.eslint?.addOverride({
-  files: ['src/lambda/**/*.ts'],
+  files: ["src/lambda/**/*.ts"],
   rules: {
-    'import/no-extraneous-dependencies': [
-      'error',
+    "import/no-extraneous-dependencies": [
+      "error",
       {
         devDependencies: true,
         optionalDependencies: false,
@@ -97,62 +103,67 @@ project.eslint?.addOverride({
 });
 
 // Husky: prepare script for npm install lifecycle
-project.package.setScript('prepare', 'husky');
+project.package.setScript("prepare", "husky");
 
 // lint-staged: format on commit, fail on lint errors
-project.package.addField('lint-staged', {
-  '*.ts': ['prettier --write', 'eslint --no-error-on-unmatched-pattern'],
-  '*.{json,md,yml,yaml}': ['prettier --write'],
+project.package.addField("lint-staged", {
+  "*.ts": ["prettier --write", "eslint --no-error-on-unmatched-pattern"],
+  "*.{json,md,yml,yaml}": ["prettier --write"],
 });
 
 // Husky: pre-commit hook
 // ESLINT_USE_FLAT_CONFIG=false is required because this project uses .eslintrc.json (legacy config) with ESLint 9
-new TextFile(project, '.husky/pre-commit', {
-  lines: ['export ESLINT_USE_FLAT_CONFIG=false', 'npx lint-staged'],
+new TextFile(project, ".husky/pre-commit", {
+  lines: ["export ESLINT_USE_FLAT_CONFIG=false", "npx lint-staged"],
   marker: false,
 });
 
 // Husky: pre-push hook
 // Run full build (compile + docgen + test) then abort push if uncommitted changes exist (e.g. stale API.md)
-new TextFile(project, '.husky/pre-push', {
+new TextFile(project, ".husky/pre-push", {
   lines: [
-    'npx projen build',
+    "npx projen build",
     'git diff --exit-code || (echo "\\nBuild generated uncommitted changes (e.g. API.md). Please commit them and push again." && exit 1)',
   ],
   marker: false,
 });
 
 // Exclude auto-generated files from prettier (projen/jsii-docgen manage their own formatting)
-project.prettier?.ignoreFile?.addPatterns('/API.md', '/.eslintrc.json', '/.github/pull_request_template.md');
+project.prettier?.ignoreFile?.addPatterns("/API.md", "/.eslintrc.json", "/.github/pull_request_template.md");
 
 // Ignore compiled Lambda output directory (generated by tsconfig.lambda.json)
-project.gitignore.addPatterns('/lambda');
+project.gitignore.addPatterns("/lambda");
 
 // Community health & security files (not managed by projen)
 project.gitignore.include(
-  '/CODE_OF_CONDUCT.md',
-  '/SECURITY.md',
-  '/CONTRIBUTING.md',
-  '/.github/dependabot.yml',
-  '/.github/CODEOWNERS',
-  '/.github/FUNDING.yml',
-  '/.github/labels.yml',
-  '/.github/release-drafter.yml',
-  '/.github/ISSUE_TEMPLATE/bug_report.yml',
-  '/.github/ISSUE_TEMPLATE/feature_request.yml',
-  '/.github/ISSUE_TEMPLATE/config.yml',
-  '/.github/workflows/security.yml',
-  '/.github/workflows/stale.yml',
-  '/.github/workflows/scorecard.yml',
-  '/.github/workflows/dependency-review.yml',
-  '/.github/workflows/release-drafter.yml',
-  '/.github/workflows/labeler.yml',
-  '/scripts/',
+  "/CODE_OF_CONDUCT.md",
+  "/SECURITY.md",
+  "/CONTRIBUTING.md",
+  "/.github/dependabot.yml",
+  "/.github/CODEOWNERS",
+  "/.github/FUNDING.yml",
+  "/.github/labels.yml",
+  "/.github/release-drafter.yml",
+  "/.github/ISSUE_TEMPLATE/bug_report.yml",
+  "/.github/ISSUE_TEMPLATE/feature_request.yml",
+  "/.github/ISSUE_TEMPLATE/config.yml",
+  "/.github/workflows/security.yml",
+  "/.github/workflows/stale.yml",
+  "/.github/workflows/scorecard.yml",
+  "/.github/workflows/dependency-review.yml",
+  "/.github/workflows/release-drafter.yml",
+  "/.github/workflows/labeler.yml",
+  "/scripts/",
 );
 
 // Add post-compile task to compile lambda functions
-project.postCompileTask?.exec('npx tsc --project tsconfig.lambda.json', {
-  name: 'compile-lambda',
+project.postCompileTask?.exec("npx tsc --project tsconfig.lambda.json", {
+  name: "compile-lambda",
 });
+
+// Run a full build during post-upgrade so that the upgrade workflow patch
+// includes generated artifacts (API.md, lib/, lambda/).
+// Without this, the pre-push hook detects stale build output and blocks the push.
+project.tasks.tryFind("post-upgrade")?.spawn(project.buildTask);
 
 project.synth();

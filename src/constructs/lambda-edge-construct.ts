@@ -1,14 +1,14 @@
-import { Arn, ArnFormat, Duration, RemovalPolicy, Stack, Token } from 'aws-cdk-lib';
-import { PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
-import * as lambda from 'aws-cdk-lib/aws-lambda';
-import { NodejsFunction, OutputFormat } from 'aws-cdk-lib/aws-lambda-nodejs';
-import { Construct } from 'constructs';
-import { resolveEntry } from './resolve-entry';
+import { Arn, ArnFormat, Duration, RemovalPolicy, Stack, Token } from "aws-cdk-lib";
+import { PolicyStatement, Role, ServicePrincipal } from "aws-cdk-lib/aws-iam";
+import * as lambda from "aws-cdk-lib/aws-lambda";
+import { NodejsFunction, OutputFormat } from "aws-cdk-lib/aws-lambda-nodejs";
+import { Construct } from "constructs";
+import { resolveEntry } from "./resolve-entry";
 
 /**
  * Default custom header name for API Gateway access restriction.
  */
-const DEFAULT_CUSTOM_HEADER_NAME = 'x-origin-verify';
+const DEFAULT_CUSTOM_HEADER_NAME = "x-origin-verify";
 
 /**
  * Default cache TTL in seconds (5 minutes).
@@ -86,7 +86,7 @@ export class LambdaEdgeConstruct extends Construct {
 
     // Validate region is us-east-1
     const region = Stack.of(this).region;
-    if (region !== 'us-east-1' && !Token.isUnresolved(region)) {
+    if (region !== "us-east-1" && !Token.isUnresolved(region)) {
       throw new Error(`LambdaEdgeConstruct must be deployed in us-east-1 region. Current region: ${region}`);
     }
 
@@ -98,13 +98,13 @@ export class LambdaEdgeConstruct extends Construct {
     // Create Lambda@Edge function using NodejsFunction with esbuild bundling
     // Configuration is embedded at build time using esbuild's define option
     // since Lambda@Edge does not support environment variables
-    this.edgeFunction = new NodejsFunction(this, 'EdgeFunction', {
-      runtime: lambda.Runtime.NODEJS_20_X,
-      entry: resolveEntry(__dirname, '../lambda/edge-origin-request'),
-      handler: 'handler',
+    this.edgeFunction = new NodejsFunction(this, "EdgeFunction", {
+      runtime: lambda.Runtime.NODEJS_22_X,
+      entry: resolveEntry(__dirname, "../lambda/edge-origin-request"),
+      handler: "handler",
       timeout: Duration.seconds(5), // Lambda@Edge has max 5 seconds for origin request
       memorySize: 128,
-      description: 'Lambda@Edge function for adding custom header to origin requests',
+      description: "Lambda@Edge function for adding custom header to origin requests",
       currentVersionOptions: {
         removalPolicy,
       },
@@ -113,17 +113,17 @@ export class LambdaEdgeConstruct extends Construct {
         // This replaces process.env.* references with actual values
         // Note: We use secret name instead of ARN to avoid CDK token issues
         define: {
-          'process.env.SECRET_NAME': JSON.stringify(props.secretName),
-          'process.env.SECRET_REGION': JSON.stringify('us-east-1'),
-          'process.env.CUSTOM_HEADER_NAME': JSON.stringify(customHeaderName),
-          'process.env.CACHE_TTL_SECONDS': JSON.stringify(String(cacheTtlSeconds)),
+          "process.env.SECRET_NAME": JSON.stringify(props.secretName),
+          "process.env.SECRET_REGION": JSON.stringify("us-east-1"),
+          "process.env.CUSTOM_HEADER_NAME": JSON.stringify(customHeaderName),
+          "process.env.CACHE_TTL_SECONDS": JSON.stringify(String(cacheTtlSeconds)),
         },
         // Minify for smaller bundle size (Lambda@Edge has size limits)
         minify: true,
         // Use ESM format for better tree-shaking
         format: OutputFormat.CJS,
         // Target Node.js 20
-        target: 'node20',
+        target: "node22",
         // Bundle AWS SDK into the function to ensure region configuration
         // is preserved. By default, NodejsFunction externalizes @aws-sdk/*
         // which causes esbuild minification to strip the region option.
@@ -136,9 +136,9 @@ export class LambdaEdgeConstruct extends Construct {
     // Use Arn.format to properly handle token values for account ID
     const secretArnPattern = Arn.format(
       {
-        service: 'secretsmanager',
-        region: 'us-east-1',
-        resource: 'secret',
+        service: "secretsmanager",
+        region: "us-east-1",
+        resource: "secret",
         resourceName: `${props.secretName}*`,
         arnFormat: ArnFormat.COLON_RESOURCE_NAME,
       },
@@ -147,7 +147,7 @@ export class LambdaEdgeConstruct extends Construct {
 
     this.edgeFunction.addToRolePolicy(
       new PolicyStatement({
-        actions: ['secretsmanager:GetSecretValue'],
+        actions: ["secretsmanager:GetSecretValue"],
         resources: [secretArnPattern],
       }),
     );
@@ -158,8 +158,8 @@ export class LambdaEdgeConstruct extends Construct {
     if (role instanceof Role) {
       role.assumeRolePolicy?.addStatements(
         new PolicyStatement({
-          actions: ['sts:AssumeRole'],
-          principals: [new ServicePrincipal('edgelambda.amazonaws.com')],
+          actions: ["sts:AssumeRole"],
+          principals: [new ServicePrincipal("edgelambda.amazonaws.com")],
         }),
       );
     }

@@ -1,15 +1,15 @@
-import { Duration, RemovalPolicy } from 'aws-cdk-lib';
-import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
-import { IFunction, Runtime } from 'aws-cdk-lib/aws-lambda';
-import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
-import { ISecret, RotationSchedule, Secret } from 'aws-cdk-lib/aws-secretsmanager';
-import { Construct } from 'constructs';
-import { resolveEntry } from './resolve-entry';
+import { Duration, RemovalPolicy } from "aws-cdk-lib";
+import { PolicyStatement } from "aws-cdk-lib/aws-iam";
+import { IFunction, Runtime } from "aws-cdk-lib/aws-lambda";
+import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
+import { ISecret, RotationSchedule, Secret } from "aws-cdk-lib/aws-secretsmanager";
+import { Construct } from "constructs";
+import { resolveEntry } from "./resolve-entry";
 
 /**
  * Default custom header name for API Gateway access restriction.
  */
-const DEFAULT_CUSTOM_HEADER_NAME = 'x-origin-verify';
+const DEFAULT_CUSTOM_HEADER_NAME = "x-origin-verify";
 
 /**
  * Default rotation interval in days.
@@ -19,18 +19,18 @@ const DEFAULT_ROTATION_DAYS = 7;
 /**
  * Default SSM prefix for parameters.
  */
-const DEFAULT_SSM_PREFIX = '/myapp/security/';
+const DEFAULT_SSM_PREFIX = "/myapp/security/";
 
 /**
  * Default replica regions for secret replication.
  */
-const DEFAULT_REPLICA_REGIONS = ['ap-northeast-1'];
+const DEFAULT_REPLICA_REGIONS = ["ap-northeast-1"];
 
 /**
  * Primary region for secrets (us-east-1).
  * This region cannot be specified as a replica region.
  */
-const PRIMARY_REGION = 'us-east-1';
+const PRIMARY_REGION = "us-east-1";
 
 /**
  * Properties for SecretConstruct.
@@ -152,14 +152,14 @@ export class SecretConstruct extends Construct {
     this.secretName = `${this.ssmPrefix}custom-header-secret`;
 
     // Create the secret with initial UUID value
-    const secret = new Secret(this, 'Secret', {
+    const secret = new Secret(this, "Secret", {
       secretName: this.secretName,
       description: `Custom header value for ${this.customHeaderName}`,
       generateSecretString: {
         secretStringTemplate: JSON.stringify({
           headerName: this.customHeaderName,
         }),
-        generateStringKey: 'headerValue',
+        generateStringKey: "headerValue",
         excludePunctuation: true,
         includeSpace: false,
         passwordLength: 36, // UUID-like length
@@ -177,17 +177,17 @@ export class SecretConstruct extends Construct {
     this.secretArn = secret.secretArn;
 
     // Create rotation Lambda function
-    this.rotationFunction = new NodejsFunction(this, 'RotationFunction', {
-      runtime: Runtime.NODEJS_20_X,
-      entry: resolveEntry(__dirname, '../lambda/rotation-handler'),
-      handler: 'handler',
+    this.rotationFunction = new NodejsFunction(this, "RotationFunction", {
+      runtime: Runtime.NODEJS_22_X,
+      entry: resolveEntry(__dirname, "../lambda/rotation-handler"),
+      handler: "handler",
       timeout: Duration.seconds(30),
       environment: {
         SECRET_ARN: secret.secretArn,
         SSM_PREFIX: this.ssmPrefix,
         CUSTOM_HEADER_NAME: this.customHeaderName,
       },
-      description: 'Rotates custom header secret and updates SSM parameters',
+      description: "Rotates custom header secret and updates SSM parameters",
     });
 
     // Grant permissions to the rotation Lambda
@@ -197,13 +197,13 @@ export class SecretConstruct extends Construct {
     // Grant SSM parameter update permissions
     this.rotationFunction.addToRolePolicy(
       new PolicyStatement({
-        actions: ['ssm:PutParameter', 'ssm:GetParameter'],
+        actions: ["ssm:PutParameter", "ssm:GetParameter"],
         resources: [`arn:aws:ssm:*:*:parameter${this.ssmPrefix}*`],
       }),
     );
 
     // Configure rotation schedule
-    new RotationSchedule(this, 'RotationSchedule', {
+    new RotationSchedule(this, "RotationSchedule", {
       secret,
       rotationLambda: this.rotationFunction,
       automaticallyAfter: Duration.days(this.rotationDays),
