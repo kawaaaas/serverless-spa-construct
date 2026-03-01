@@ -161,4 +161,9 @@ project.postCompileTask?.exec('npx tsc --project tsconfig.lambda.json', {
   name: 'compile-lambda',
 });
 
+// Run a full build during post-upgrade so that the upgrade workflow patch
+// includes generated artifacts (API.md, lib/, lambda/).
+// Without this, the pre-push hook detects stale build output and blocks the push.
+project.tasks.tryFind('post-upgrade')?.spawn(project.buildTask);
+
 project.synth();
