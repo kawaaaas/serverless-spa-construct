@@ -52,6 +52,7 @@ junit.xml
 tsconfig.json
 !/API.md
 !/.husky/pre-commit
+!/.husky/pre-push
 /lambda
 !/CODE_OF_CONDUCT.md
 !/SECURITY.md
@@ -70,4 +71,5 @@ tsconfig.json
 !/.github/workflows/dependency-review.yml
 !/.github/workflows/release-drafter.yml
 !/.github/workflows/labeler.yml
+!/scripts/
 !/.projenrc.ts

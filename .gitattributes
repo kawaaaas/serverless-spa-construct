@@ -11,6 +11,7 @@
 /.github/workflows/upgrade-main.yml linguist-generated
 /.gitignore linguist-generated
 /.husky/pre-commit linguist-generated
+/.husky/pre-push linguist-generated
 /.mergify.yml linguist-generated
 /.npmignore linguist-generated
 /.prettierignore linguist-generated
