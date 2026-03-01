@@ -1,86 +1,112 @@
-# serverless-spa-construct
+<p align="center">
+  <h1 align="center">serverless-spa-construct</h1>
+  <p align="center">
+    A high-level AWS CDK construct library for building production-ready serverless Single Page Applications on AWS.
+  </p>
+</p>
 
-A high-level AWS CDK construct library for building production-ready serverless Single Page Applications (SPA) on AWS.
+<p align="center">
+  <a href="https://www.npmjs.com/package/serverless-spa-construct"><img src="https://img.shields.io/npm/v/serverless-spa-construct.svg?style=flat-square" alt="npm version" /></a>
+  <a href="https://www.npmjs.com/package/serverless-spa-construct"><img src="https://img.shields.io/npm/dm/serverless-spa-construct.svg?style=flat-square" alt="npm downloads" /></a>
+  <a href="https://github.com/kawaaaas/serverless-spa-construct/actions"><img src="https://img.shields.io/github/actions/workflow/status/kawaaaas/serverless-spa-construct/release.yml?style=flat-square&label=build" alt="build status" /></a>
+  <a href="https://github.com/kawaaaas/serverless-spa-construct/blob/main/LICENSE"><img src="https://img.shields.io/github/license/kawaaaas/serverless-spa-construct?style=flat-square" alt="license" /></a>
+  <a href="https://constructs.dev/packages/serverless-spa-construct"><img src="https://img.shields.io/badge/constructs.dev-serverless--spa--construct-orange?style=flat-square" alt="construct hub" /></a>
+</p>
 
-This library provides two high-level constructs and nine low-level constructs that together create a complete serverless SPA infrastructure including DynamoDB, Cognito, API Gateway, Lambda, S3, CloudFront, WAF, ACM, Secrets Manager, Lambda@Edge, and SSM Parameter Store.
+<p align="center">
+  <a href="#quick-start">Quick Start</a> •
+  <a href="#architecture">Architecture</a> •
+  <a href="#usage-patterns">Usage Patterns</a> •
+  <a href="#api-reference">API Reference</a> •
+  <a href="#contributing">Contributing</a>
+</p>
+
+---
 
 ## Why This Construct?
 
-### The Problem
+Building a production-ready SPA on AWS requires orchestrating 10+ services across multiple regions. CloudFront demands that WAF WebACLs, ACM certificates, and Lambda@Edge functions all reside in `us-east-1`, while your application stack lives in another region. Managing cross-region dependencies, secret rotation, and multi-layer authentication by hand is tedious, error-prone, and results in hundreds of lines of CDK code that every team ends up rewriting.
 
-Building a production-ready SPA on AWS requires orchestrating 10+ services across multiple regions. CloudFront demands that WAF WebACLs, ACM certificates, and Lambda@Edge functions all reside in us-east-1, while your application stack lives in another region. Managing cross-region dependencies, secret rotation, and multi-layer authentication by hand is tedious, error-prone, and results in hundreds of lines of CDK code that every team ends up rewriting.
+This construct library encapsulates all of that complexity behind a clean factory method API. One call creates a fully wired infrastructure:
 
-### What This Library Solves
-
-This construct library encapsulates all of that complexity behind a clean factory method API. One call creates a fully wired infrastructure. Here is what you get out of the box:
-
-### CDK-Level Benefits
-
-- Factory method pattern (`minimal`, `withWaf`, `withCustomDomain`, `withCustomDomainAndWaf`) lets you pick exactly the feature set you need. No unused resources, no wasted cost.
-- Cross-region dependency management via SSM Parameter Store is handled automatically. The security stack in us-east-1 writes WAF ARN, certificate ARN, secret ARN, Lambda@Edge version ARN, and custom header name to SSM. The main stack reads them at deploy time through `AwsCustomResource` with least-privilege IAM policies. You never touch SSM directly.
-- Auto-wiring between constructs eliminates manual plumbing. `ApiConstruct` automatically receives the DynamoDB table and Cognito User Pool. `FrontendConstruct` automatically receives the REST API, WAF WebACL ARN, certificate, and Lambda@Edge version. All IAM grants (DynamoDB read/write, Secrets Manager read, SSM read) are created for you.
-- Two-level API design: high-level factory methods for common patterns, plus nine low-level constructs (`DatabaseConstruct`, `AuthConstruct`, `ApiConstruct`, `FrontendConstruct`, `WafConstruct`, `CertificateConstruct`, `SecretConstruct`, `LambdaEdgeConstruct`, `SsmConstruct`) for when you need full control.
-- The `advanced` option on every factory method lets you override any sub-construct property (GSIs, WAF custom rules, rotation interval, cache TTL, removal policy, tags) without dropping down to the low-level API.
+| What you get                       | Details                                                                                                                                                                                       |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Factory method pattern             | `minimal`, `withWaf`, `withCustomDomain`, `withCustomDomainAndWaf` — pick exactly the feature set you need                                                                                    |
+| Cross-region dependency management | SSM Parameter Store handles WAF ARN, certificate ARN, secret ARN, Lambda@Edge version ARN, and custom header name automatically                                                               |
+| Auto-wiring between constructs     | `ApiConstruct` receives DynamoDB table and Cognito User Pool. `FrontendConstruct` receives REST API, WAF WebACL ARN, certificate, and Lambda@Edge version. All IAM grants are created for you |
+| Two-level API design               | High-level factory methods for common patterns, plus nine low-level constructs for full control                                                                                               |
+| `advanced` option                  | Override any sub-construct property (GSIs, WAF custom rules, rotation interval, cache TTL, removal policy, tags) without dropping down to the low-level API                                   |
 
 ### Architecture-Level Benefits
 
-- Multi-layer origin protection: API Gateway is not directly accessible from the internet. Lambda@Edge injects a secret custom header (`x-origin-verify`) into every origin request at the CloudFront edge. A Lambda Authorizer on API Gateway validates this header against the Secrets Manager value. Only requests that pass through CloudFront reach your API.
-- Dual authentication in a single Lambda Authorizer: when both Cognito and custom header protection are enabled, the Lambda Authorizer validates the JWT token (via `aws-jwt-verify`) and the custom header in one invocation. This avoids the overhead of chaining two separate authorizers.
-- Automatic secret rotation: `SecretConstruct` creates a Secrets Manager secret with a rotation Lambda that generates a new UUID on a configurable schedule (default: 7 days). The rotation handler follows the standard four-step Secrets Manager protocol (`createSecret` / `setSecret` / `testSecret` / `finishSecret`) and updates the SSM parameter after rotation to maintain cross-region consistency.
-- Cross-region secret replication: the primary secret in us-east-1 is automatically replicated to your application region (default: `ap-northeast-1`). The Lambda Authorizer in the main stack reads from the local replica, avoiding cross-region latency on every API call.
-- In-memory caching in both Lambda functions: the Lambda@Edge function and the Lambda Authorizer cache the secret value in memory with a configurable TTL (default: 300 seconds). This reduces Secrets Manager API calls to a minimum while ensuring rotated values propagate within the TTL window.
-- WAF with sensible defaults: rate limiting (default: 2000 requests per 5 minutes), AWS Managed Rules Common Rule Set, and AWS Managed Rules SQLi Rule Set are all enabled by default. You can add custom rules, adjust the rate limit, or provide a completely custom rule set via the `rules` override.
-- SPA routing via CloudFront Functions: a lightweight CloudFront Function rewrites extension-less paths to `/index.html` at the viewer-request stage. Unlike custom error responses, this approach does not intercept API Gateway error responses (403, 404), so real API errors are returned to the client as-is.
-- S3 Origin Access Control (OAC): the S3 bucket blocks all public access. CloudFront accesses it exclusively through OAC, not the legacy Origin Access Identity.
-- Cognito User Pool with SPA-friendly defaults: email sign-in, self sign-up, email auto-verification, SRP auth flow, no client secret (required for browser-based SPAs), and a secure password policy (min 8 chars, lowercase + digits required).
-- DynamoDB single-table design defaults: PK/SK string attributes, on-demand billing, optional GSIs, and optional point-in-time recovery. The sort key can be disabled for simple key-value use cases.
-- ACM certificate with DNS validation: `CertificateConstruct` creates a certificate in us-east-1 and validates it against your Route53 hosted zone. Alternative domain names (SANs) are supported.
-- Route53 DNS records: `FrontendConstruct` automatically creates A records for the primary domain and all alternative domain names, pointing to the CloudFront distribution.
+- **Multi-layer origin protection** — Lambda@Edge injects a secret custom header (`x-origin-verify`) into every origin request. A Lambda Authorizer validates this header against the Secrets Manager value. Only requests through CloudFront reach your API.
+- **Dual authentication** — JWT token (via `aws-jwt-verify`) and custom header validation in a single Lambda Authorizer invocation.
+- **Automatic secret rotation** — Secrets Manager secret with a rotation Lambda (UUID, configurable schedule, default 7 days). Cross-region replication to your application region avoids latency.
+- **In-memory caching** — Both Lambda@Edge and Lambda Authorizer cache secret values (configurable TTL, default 300s) to minimize Secrets Manager API calls.
+- **WAF with sensible defaults** — Rate limiting (2000 req/5min), AWS Managed Rules Common Rule Set, and SQLi Rule Set enabled by default.
+- **SPA routing via CloudFront Functions** — Extension-less paths rewrite to `/index.html` without intercepting API error responses.
+- **S3 Origin Access Control (OAC)** — No legacy OAI. S3 bucket blocks all public access.
+- **Cognito SPA-friendly defaults** — Email sign-in, self sign-up, SRP auth flow, no client secret.
+- **DynamoDB single-table design** — PK/SK string attributes, on-demand billing, optional GSIs and PITR.
+- **ACM certificate with DNS validation** — Certificate in `us-east-1` validated against Route53 hosted zone with SAN support.
 
 ## Architecture
 
 ```
-                                    +------------------+
-                                    |  Cognito         |
-                                    |  User Pool       |
-                                    |  (JWT issuer)    |
-                                    +--------+---------+
-                                             | JWT verification
-+--------+    +--------------+    +----------+-------------+
-|  User  |--->|  CloudFront  |--->| API Gateway (REST)     |
-+--------+    |              |    | - Resource policy      |
-              | /api/* ------+--->| - Cognito Authorizer   |
-              |              |    +----------+-------------+
-              | /* ----------+--+            |
-              +--------------+  |            v
-                                |  +---------+---------+
-                                |  | Lambda            |
-                                |  | (Node.js 20.x)    |
-                                |  +---------+---------+
-                                |            |
-                                v            v
-                      +--------------+  +-----------+
-                      | S3 Bucket    |  | DynamoDB  |
-                      +--------------+  +-----------+
+                                    ┌──────────────────┐
+                                    │  Cognito          │
+                                    │  User Pool        │
+                                    │  (JWT issuer)     │
+                                    └────────┬─────────┘
+                                             │ JWT verification
+┌────────┐    ┌──────────────┐    ┌──────────┴─────────────┐
+│  User  │───▶│  CloudFront  │───▶│ API Gateway (REST)     │
+└────────┘    │              │    │ - Resource policy       │
+              │ /api/* ──────┼───▶│ - Cognito Authorizer   │
+              │              │    └──────────┬──────────────┘
+              │ /* ──────────┼──┐            │
+              └──────────────┘  │            ▼
+                                │  ┌─────────┴─────────┐
+                                │  │ Lambda             │
+                                │  │ (Node.js 20.x)    │
+                                │  └─────────┬─────────┘
+                                │            │
+                                ▼            ▼
+                      ┌──────────────┐  ┌───────────┐
+                      │ S3 Bucket    │  │ DynamoDB  │
+                      └──────────────┘  └───────────┘
 ```
 
-When WAF and custom domain are enabled, the security stack (us-east-1) adds:
+When WAF and custom domain are enabled, the security stack (`us-east-1`) adds:
 
 ```
-+-------------------+    +-------------------+    +---------------------+
-| WAF WebACL        |    | Secrets Manager   |    | ACM Certificate     |
-| (CLOUDFRONT)      |    | (auto-rotation)   |    | (DNS validation)    |
-+-------------------+    +--------+----------+    +---------------------+
-                                  |
-                         +--------+----------+
-                         | Lambda@Edge       |
-                         | (origin request)  |
-                         +-------------------+
-                                  |
-                         +--------+----------+
-                         | SSM Parameters    |
-                         | (cross-region)    |
-                         +-------------------+
+┌───────────────────┐    ┌───────────────────┐    ┌─────────────────────┐
+│ WAF WebACL        │    │ Secrets Manager   │    │ ACM Certificate     │
+│ (CLOUDFRONT)      │    │ (auto-rotation)   │    │ (DNS validation)    │
+└───────────────────┘    └────────┬──────────┘    └─────────────────────┘
+                                  │
+                         ┌────────┴──────────┐
+                         │ Lambda@Edge       │
+                         │ (origin request)  │
+                         └───────────────────┘
+                                  │
+                         ┌────────┴──────────┐
+                         │ SSM Parameters    │
+                         │ (cross-region)    │
+                         └───────────────────┘
+```
+
+### Cross-Region Architecture
+
+```
+us-east-1 (Security Stack)              Your Region (Main Stack)
+┌───────────────────────────┐            ┌───────────────────────────┐
+│ WAF WebACL                │            │ DynamoDB                  │
+│ ACM Certificate           │   SSM      │ Cognito User Pool         │
+│ Secrets Manager (primary) │ ─────────▶ │ API Gateway + Lambda      │
+│ Lambda@Edge               │  params    │ S3 + CloudFront           │
+│ SSM Parameters            │            │ Secrets Manager (replica) │
+└───────────────────────────┘            └───────────────────────────┘
 ```
 
 ## Installation
@@ -100,10 +126,6 @@ Peer dependencies (must be installed separately):
 ```bash
 npm install aws-cdk-lib constructs
 ```
-
-## Usage Examples
-
-For a complete working example implementation, see the [serverless-spa-construct-test](https://github.com/kawaaaas/serverless-spa-construct-test) repository.
 
 ## Quick Start
 
@@ -134,6 +156,8 @@ export class MyAppStack extends Stack {
 }
 ```
 
+> For a complete working example, see the [serverless-spa-construct-test](https://github.com/kawaaaas/serverless-spa-construct-test) repository.
+
 ## Usage Patterns
 
 ### Pattern 1: Minimal (Development / Testing)
@@ -150,7 +174,7 @@ ServerlessSpaConstruct.minimal(this, 'App', {
 
 ### Pattern 2: Custom Domain
 
-Requires a `ServerlessSpaSecurityConstruct` with certificate deployed in us-east-1 first.
+Requires a `ServerlessSpaSecurityConstruct` with certificate deployed in `us-east-1` first.
 
 ```ts
 ServerlessSpaConstruct.withCustomDomain(this, 'App', {
@@ -166,7 +190,7 @@ ServerlessSpaConstruct.withCustomDomain(this, 'App', {
 
 ### Pattern 3: WAF Protection
 
-Requires a `ServerlessSpaSecurityConstruct` with WAF deployed in us-east-1 first.
+Requires a `ServerlessSpaSecurityConstruct` with WAF deployed in `us-east-1` first.
 
 ```ts
 ServerlessSpaConstruct.withWaf(this, 'App', {
@@ -178,7 +202,7 @@ ServerlessSpaConstruct.withWaf(this, 'App', {
 
 ### Pattern 4: Custom Domain + WAF (Full Production)
 
-Requires a `ServerlessSpaSecurityConstruct` with WAF and certificate deployed in us-east-1 first.
+Requires a `ServerlessSpaSecurityConstruct` with WAF and certificate deployed in `us-east-1` first.
 
 ```ts
 ServerlessSpaConstruct.withCustomDomainAndWaf(this, 'App', {
@@ -196,7 +220,10 @@ ServerlessSpaConstruct.withCustomDomainAndWaf(this, 'App', {
 
 ## Full Example: Two-Stack Production Deployment
 
-This example shows a complete production setup with a security stack in us-east-1 and a main application stack in your preferred region. A working reference implementation is available at [serverless-spa-construct-test](https://github.com/kawaaaas/serverless-spa-construct-test).
+A complete production setup with a security stack in `us-east-1` and a main application stack in your preferred region. A working reference implementation is available at [serverless-spa-construct-test](https://github.com/kawaaaas/serverless-spa-construct-test).
+
+<details>
+<summary>Click to expand full example</summary>
 
 ### CDK App Entry Point
 
@@ -208,20 +235,16 @@ import { MainStack } from '../lib/main-stack';
 
 const app = new cdk.App();
 
-// Security stack must be deployed in us-east-1
-// (CloudFront requires WAF WebACLs and ACM certificates in this region)
 const securityStack = new SecurityStack(app, 'SecurityStack', {
   env: { region: 'us-east-1' },
   crossRegionReferences: true,
 });
 
-// Main stack can be deployed in any region
 const mainStack = new MainStack(app, 'MainStack', {
   env: { region: 'ap-northeast-1' },
   crossRegionReferences: true,
 });
 
-// Main stack depends on security stack for SSM parameters
 mainStack.addDependency(securityStack);
 ```
 
@@ -295,16 +318,21 @@ npx cdk deploy SecurityStack
 npx cdk deploy MainStack
 ```
 
+</details>
+
 ## Security Construct Factory Methods
 
-`ServerlessSpaSecurityConstruct` must be deployed in us-east-1. It provides security resources that are shared with the main stack via SSM Parameter Store.
+`ServerlessSpaSecurityConstruct` must be deployed in `us-east-1`. It provides security resources shared with the main stack via SSM Parameter Store.
 
 | Factory Method            | WAF | Custom Header + Lambda@Edge | ACM Certificate |
-| ------------------------- | --- | --------------------------- | --------------- |
-| `minimal()`               | -   | Yes                         | -               |
-| `withWaf()`               | Yes | Yes                         | -               |
-| `withCertificate()`       | -   | Yes                         | Yes             |
-| `withWafAndCertificate()` | Yes | Yes                         | Yes             |
+| ------------------------- | :-: | :-------------------------: | :-------------: |
+| `minimal()`               |  —  |             ✅              |        —        |
+| `withWaf()`               | ✅  |             ✅              |        —        |
+| `withCertificate()`       |  —  |             ✅              |       ✅        |
+| `withWafAndCertificate()` | ✅  |             ✅              |       ✅        |
+
+<details>
+<summary>Security construct examples</summary>
 
 ```ts
 // Minimal: custom header only
@@ -337,11 +365,14 @@ ServerlessSpaSecurityConstruct.withWafAndCertificate(this, 'Security', {
 });
 ```
 
+</details>
+
 ## Advanced Options
 
 Both high-level constructs accept an `advanced` option for fine-grained control over individual sub-constructs.
 
-### ServerlessSpaConstruct
+<details>
+<summary>ServerlessSpaConstruct advanced options</summary>
 
 ```ts
 ServerlessSpaConstruct.minimal(this, 'App', {
@@ -374,7 +405,10 @@ ServerlessSpaConstruct.minimal(this, 'App', {
 });
 ```
 
-### ServerlessSpaSecurityConstruct
+</details>
+
+<details>
+<summary>ServerlessSpaSecurityConstruct advanced options</summary>
 
 ```ts
 ServerlessSpaSecurityConstruct.withWaf(this, 'Security', {
@@ -411,6 +445,8 @@ ServerlessSpaSecurityConstruct.withWaf(this, 'Security', {
 });
 ```
 
+</details>
+
 ## Low-Level Constructs
 
 For cases where the high-level constructs do not fit your needs, you can use the low-level constructs individually.
@@ -427,7 +463,8 @@ For cases where the high-level constructs do not fit your needs, you can use the
 | `LambdaEdgeConstruct`  | Lambda@Edge function for injecting custom headers into origin requests      |
 | `SsmConstruct`         | SSM Parameter Store for cross-region configuration sharing                  |
 
-Example using low-level constructs:
+<details>
+<summary>Low-level construct example</summary>
 
 ```ts
 import { DatabaseConstruct, AuthConstruct, ApiConstruct, FrontendConstruct } from 'serverless-spa-construct';
@@ -450,42 +487,24 @@ const frontend = new FrontendConstruct(this, 'Frontend', {
 });
 ```
 
-## Cross-Region Architecture
+</details>
 
-This library uses a two-stack pattern because CloudFront requires certain resources (WAF WebACL, ACM certificate, Lambda@Edge) to be in us-east-1.
+## How SSM-Based Dependency Management Works
 
-```
-us-east-1 (Security Stack)              Your Region (Main Stack)
-+---------------------------+            +---------------------------+
-| WAF WebACL                |            | DynamoDB                  |
-| ACM Certificate           |   SSM      | Cognito User Pool         |
-| Secrets Manager (primary) | ---------> | API Gateway + Lambda      |
-| Lambda@Edge               |  params    | S3 + CloudFront           |
-| SSM Parameters            |            | Secrets Manager (replica) |
-+---------------------------+            +---------------------------+
-```
+The two stacks communicate through SSM Parameter Store, not through CloudFormation exports or hard-coded ARNs.
 
-### How SSM-Based Dependency Management Works
+1. `ServerlessSpaSecurityConstruct` creates resources in `us-east-1` and writes their identifiers to SSM parameters under a shared prefix (e.g., `/myapp/security/`):
+   - `{prefix}waf-acl-arn` — WAF WebACL ARN
+   - `{prefix}custom-header-name` — Custom header name (e.g., `x-origin-verify`)
+   - `{prefix}secret-arn` — Secrets Manager secret ARN
+   - `{prefix}edge-function-version-arn` — Lambda@Edge function version ARN
+   - `{prefix}certificate-arn` — ACM certificate ARN
 
-The two stacks communicate through SSM Parameter Store, not through CloudFormation exports or hard-coded ARNs. This decoupling is intentional:
+2. `ServerlessSpaConstruct` in the main stack creates individual `AwsCustomResource` instances that call `ssm:GetParameter` against `us-east-1` at deploy time. Each reader has a least-privilege IAM policy scoped to `arn:aws:ssm:{region}:{account}:parameter{prefix}*`.
 
-1. The `ServerlessSpaSecurityConstruct` creates resources in us-east-1 and writes their identifiers to SSM parameters under a shared prefix (e.g., `/myapp/security/`):
-   - `{prefix}waf-acl-arn` -- WAF WebACL ARN
-   - `{prefix}custom-header-name` -- Custom header name (e.g., `x-origin-verify`)
-   - `{prefix}secret-arn` -- Secrets Manager secret ARN
-   - `{prefix}edge-function-version-arn` -- Lambda@Edge function version ARN
-   - `{prefix}certificate-arn` -- ACM certificate ARN
+3. The retrieved values configure CloudFront (WAF association, certificate, Lambda@Edge), API Gateway (Lambda Authorizer with secret ARN), and other resources.
 
-2. The `ServerlessSpaConstruct` in the main stack creates individual `AwsCustomResource` instances that call `ssm:GetParameter` against us-east-1 at deploy time. Each reader has a least-privilege IAM policy scoped to `arn:aws:ssm:{region}:{account}:parameter{prefix}*`.
-
-3. The retrieved values are used to configure CloudFront (WAF association, certificate, Lambda@Edge), API Gateway (Lambda Authorizer with secret ARN), and other resources.
-
-This approach has several advantages over alternatives:
-
-- No circular dependency between stacks (a common problem with CloudFormation exports).
-- The security stack can be updated independently without redeploying the main stack.
-- The SSM prefix acts as a namespace, allowing multiple environments (dev, staging, prod) to coexist in the same account.
-- Secret rotation updates the SSM parameter automatically, so the next deployment of the main stack picks up the latest value.
+This approach avoids circular dependencies between stacks, allows independent updates, supports multiple environments via SSM prefix namespacing, and automatically picks up rotated secret values on redeployment.
 
 ## Security Model
 
@@ -493,48 +512,48 @@ This library implements defense in depth with multiple independent security laye
 
 ```
 User Request
-  |
-  v
-[1] WAF WebACL (rate limiting + managed rules)
-  |
-  v
-[2] CloudFront (HTTPS only, OAC for S3)
-  |
-  v
-[3] Lambda@Edge (injects secret custom header at origin request)
-  |
-  v
-[4] Lambda Authorizer (validates custom header + JWT in one call)
-  |
-  v
-[5] API Gateway (proxies to Lambda)
-  |
-  v
-[6] Lambda Handler (DynamoDB access with least-privilege grants)
+  │
+  ▼
+[1] WAF WebACL ─── rate limiting + managed rules
+  │
+  ▼
+[2] CloudFront ─── HTTPS only, OAC for S3
+  │
+  ▼
+[3] Lambda@Edge ── injects secret custom header at origin request
+  │
+  ▼
+[4] Lambda Authorizer ── validates custom header + JWT in one call
+  │
+  ▼
+[5] API Gateway ── proxies to Lambda
+  │
+  ▼
+[6] Lambda Handler ── DynamoDB access with least-privilege grants
 ```
 
-Layer 1 -- WAF: Blocks malicious traffic before it reaches CloudFront. Rate limiting prevents volumetric attacks. AWS Managed Rules (Common Rule Set, SQLi Rule Set) block known attack patterns. Custom rules can be added for application-specific filtering.
+| Layer             | What it does                                                                                                                                                                             |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| WAF               | Blocks malicious traffic before CloudFront. Rate limiting prevents volumetric attacks. AWS Managed Rules block known attack patterns.                                                    |
+| CloudFront        | Enforces HTTPS via `ViewerProtocolPolicy.HTTPS_ONLY`. S3 accessed exclusively through OAC with `BlockPublicAccess.BLOCK_ALL`.                                                            |
+| Lambda@Edge       | Runs on every `/api/*` origin request. Retrieves secret from Secrets Manager and injects as custom header. In-memory caching (default 300s TTL). Rejects with 403 if secret unavailable. |
+| Lambda Authorizer | Validates (a) custom header matches secret value and (b) JWT token is valid against Cognito User Pool. Both checks must pass.                                                            |
+| API Gateway       | REST API with proxy integration. CORS configured with `Cors.ALL_ORIGINS` and `Cors.ALL_METHODS` by default.                                                                              |
+| Lambda Handler    | Receives only authorized requests. Has read/write access to DynamoDB via `grantReadWriteData`.                                                                                           |
 
-Layer 2 -- CloudFront: Enforces HTTPS via `ViewerProtocolPolicy.HTTPS_ONLY`. S3 is accessed exclusively through Origin Access Control (OAC), not the legacy OAI. The S3 bucket has `BlockPublicAccess.BLOCK_ALL` enabled.
-
-Layer 3 -- Lambda@Edge: Runs at the CloudFront edge on every `/api/*` origin request. Retrieves the current secret value from Secrets Manager (us-east-1) and injects it as a custom header (`x-origin-verify`). Uses in-memory caching (configurable TTL, default 300s) to minimize Secrets Manager API calls. If the secret cannot be retrieved, the request is rejected with 403 before reaching API Gateway.
-
-Layer 4 -- Lambda Authorizer: Validates two things in a single invocation: (a) the custom header matches the expected secret value (read from the local Secrets Manager replica with in-memory caching), and (b) the JWT token from the `Authorization` header is valid against the Cognito User Pool (using `aws-jwt-verify`). Both checks must pass. This dual validation ensures that only requests originating from CloudFront with a valid authenticated user can reach the backend.
-
-Layer 5 -- API Gateway: REST API with proxy integration. CORS is configured with `Cors.ALL_ORIGINS` and `Cors.ALL_METHODS` by default.
-
-Layer 6 -- Lambda Handler: Receives only authorized requests. Has read/write access to the DynamoDB table via `grantReadWriteData`. Secrets Manager read access is granted only when `secretArn` is provided.
-
-### Secret Rotation Lifecycle
+<details>
+<summary>Secret Rotation Lifecycle</summary>
 
 The `SecretConstruct` creates a rotation Lambda that follows the standard Secrets Manager four-step protocol:
 
-1. `createSecret` -- Generates a new UUID and stores it as `AWSPENDING`.
-2. `setSecret` -- No-op (no external service to update).
-3. `testSecret` -- No-op (no external service to test).
-4. `finishSecret` -- Promotes `AWSPENDING` to `AWSCURRENT` and updates the SSM parameter to maintain cross-region consistency.
+1. **createSecret** — Generates a new UUID and stores it as `AWSPENDING`.
+2. **setSecret** — No-op (no external service to update).
+3. **testSecret** — No-op (no external service to test).
+4. **finishSecret** — Promotes `AWSPENDING` to `AWSCURRENT` and updates the SSM parameter for cross-region consistency.
 
 The rotation interval is configurable (default: 7 days). After rotation, the new secret value propagates to replicas automatically via Secrets Manager replication. The Lambda@Edge and Lambda Authorizer caches expire within the configured TTL (default: 300 seconds), after which they fetch the new value.
+
+</details>
 
 ## Prerequisites
 
@@ -547,6 +566,18 @@ The rotation interval is configurable (default: 7 days). After rotation, the new
 
 Full API documentation is auto-generated. See the [API.md](./API.md) file for detailed type definitions and property descriptions.
 
+Also available on [Construct Hub](https://constructs.dev/packages/serverless-spa-construct).
+
+## Contributing
+
+Contributions are welcome. Please read the [contributing guide](CONTRIBUTING.md) and [code of conduct](CODE_OF_CONDUCT.md) before submitting a pull request.
+
 ## License
 
-Apache-2.0
+[Apache-2.0](LICENSE)
+
+---
+
+<p align="center">
+  Built with <a href="https://aws.amazon.com/cdk/">AWS CDK</a>
+</p>
