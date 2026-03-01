@@ -2,7 +2,7 @@ import { TextFile, awscdk, javascript } from 'projen';
 const project = new awscdk.AwsCdkConstructLibrary({
   author: 'kawaaaas',
   authorAddress: 'dev.kawaaaas@gmail.com',
-  cdkVersion: '2.189.1',
+  cdkVersion: '2.240.0',
   defaultReleaseBranch: 'main',
   jsiiVersion: '~5.9.0',
   name: 'serverless-spa-construct',

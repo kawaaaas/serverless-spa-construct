@@ -122,7 +122,7 @@ export class ApiConstruct extends Construct {
 
     // Create Lambda function
     const lambdaHandler = new NodejsFunction(this, 'Handler', {
-      runtime: Runtime.NODEJS_20_X,
+      runtime: Runtime.NODEJS_22_X,
       memorySize: 128,
       timeout: Duration.seconds(30),
       entry,
@@ -197,7 +197,7 @@ export class ApiConstruct extends Construct {
 
       // Create Lambda Authorizer function
       const authorizerHandler = new NodejsFunction(this, 'AuthorizerHandler', {
-        runtime: Runtime.NODEJS_20_X,
+        runtime: Runtime.NODEJS_22_X,
         memorySize: 128,
         timeout: Duration.seconds(10),
         entry: resolveEntry(__dirname, '../lambda/custom-header-authorizer'),

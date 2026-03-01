@@ -269,7 +269,7 @@ describe('FrontendConstruct', () => {
 
     const createEdgeFunctionVersion = () => {
       const fn = new LambdaFunction(stack, 'EdgeFunction', {
-        runtime: Runtime.NODEJS_20_X,
+        runtime: Runtime.NODEJS_22_X,
         handler: 'index.handler',
         code: Code.fromInline('exports.handler = async () => {}'),
       });

@@ -178,7 +178,7 @@ export class SecretConstruct extends Construct {
 
     // Create rotation Lambda function
     this.rotationFunction = new NodejsFunction(this, 'RotationFunction', {
-      runtime: Runtime.NODEJS_20_X,
+      runtime: Runtime.NODEJS_22_X,
       entry: resolveEntry(__dirname, '../lambda/rotation-handler'),
       handler: 'handler',
       timeout: Duration.seconds(30),

@@ -45,7 +45,7 @@ describe('ApiConstruct', () => {
       new ApiConstruct(stack, 'Api', { table, entry: 'src/lambda/handler.ts' });
       const template = Template.fromStack(stack);
       template.hasResourceProperties('AWS::Lambda::Function', {
-        Runtime: 'nodejs20.x',
+        Runtime: 'nodejs22.x',
       });
     });
 

@@ -63,7 +63,7 @@ describe('SecretConstruct', () => {
 
       const template = Template.fromStack(stack);
       template.hasResourceProperties('AWS::Lambda::Function', {
-        Runtime: 'nodejs20.x',
+        Runtime: 'nodejs22.x',
         Description: 'Rotates custom header secret and updates SSM parameters',
       });
     });

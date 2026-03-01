@@ -99,7 +99,7 @@ export class LambdaEdgeConstruct extends Construct {
     // Configuration is embedded at build time using esbuild's define option
     // since Lambda@Edge does not support environment variables
     this.edgeFunction = new NodejsFunction(this, 'EdgeFunction', {
-      runtime: lambda.Runtime.NODEJS_20_X,
+      runtime: lambda.Runtime.NODEJS_22_X,
       entry: resolveEntry(__dirname, '../lambda/edge-origin-request'),
       handler: 'handler',
       timeout: Duration.seconds(5), // Lambda@Edge has max 5 seconds for origin request
@@ -123,7 +123,7 @@ export class LambdaEdgeConstruct extends Construct {
         // Use ESM format for better tree-shaking
         format: OutputFormat.CJS,
         // Target Node.js 20
-        target: 'node20',
+        target: 'node22',
         // Bundle AWS SDK into the function to ensure region configuration
         // is preserved. By default, NodejsFunction externalizes @aws-sdk/*
         // which causes esbuild minification to strip the region option.

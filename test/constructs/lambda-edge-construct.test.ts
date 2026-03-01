@@ -72,9 +72,9 @@ describe('LambdaEdgeConstruct', () => {
       template = Template.fromStack(stack);
     });
 
-    test('creates Lambda function with Node.js 20.x runtime', () => {
+    test('creates Lambda function with Node.js 22.x runtime', () => {
       template.hasResourceProperties('AWS::Lambda::Function', {
-        Runtime: 'nodejs20.x',
+        Runtime: 'nodejs22.x',
       });
     });
 
