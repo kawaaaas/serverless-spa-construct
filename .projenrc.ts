@@ -13,6 +13,12 @@ const project = new awscdk.AwsCdkConstructLibrary({
 
   description: 'A high-level AWS CDK construct for building serverless SPAs with DynamoDB, Cognito, API Gateway, S3, CloudFront, WAF, and more.',
 
+  depsUpgradeOptions: {
+    workflowOptions: {
+      schedule: javascript.UpgradeDependenciesSchedule.WEEKLY,
+    },
+  },
+
   bundledDeps: ['aws-jwt-verify', '@aws-sdk/client-secrets-manager'],
 
   devDeps: ['@types/aws-lambda', '@aws-sdk/client-ssm', 'fast-check', 'esbuild', 'eslint-plugin-cdk', 'husky', 'lint-staged'],
